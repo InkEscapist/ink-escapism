@@ -30,18 +30,21 @@ let booksData = [];
 
 // LOAD BOOKS
 async function loadBooks() {
-    const { data, error } = await supabaseClient
-        .from("books")
-        .select("*");
+    try {
+        const { data, error } = await supabaseClient
+            .from("books")
+            .select("*");
 
-    if (error) {
-        console.error("LOAD ERROR:", error);
-        alert("Error loading books");
-        return;
+        if (error) {
+            alert("LOAD ERROR: " + error.message);
+            return;
+        }
+
+        booksData = data || [];
+        renderBooks();
+    } catch (err) {
+        alert("LOAD CRASH: " + err.message);
     }
-
-    booksData = data || [];
-    renderBooks();
 }
 
 // RENDER
@@ -55,7 +58,7 @@ function renderBooks() {
     }
 
     booksData.forEach(row => {
-        const book = row.data; // 🔥 IMPORTANT FIX
+        const book = row.data;
 
         if (!book) return;
 
@@ -69,29 +72,33 @@ function renderBooks() {
     });
 }
 
-// UPLOAD JSON TO SUPABASE
+// UPLOAD JSON
 async function uploadJSONToSupabase(jsonData) {
-    const booksArray = Array.isArray(jsonData) ? jsonData : jsonData.books;
+    try {
+        const booksArray = Array.isArray(jsonData) ? jsonData : jsonData.books;
 
-    if (!booksArray) {
-        alert("JSON format not recognized");
-        return;
-    }
-
-    for (const book of booksArray) {
-        const { error } = await supabaseClient
-            .from("books")
-            .insert([{ data: book }]); // 🔥 IMPORTANT FIX
-
-        if (error) {
-            console.error("Insert error:", error);
-            alert("Insert failed: " + error.message);
+        if (!booksArray) {
+            alert("JSON format not recognized");
             return;
         }
-    }
 
-    alert("Upload complete!");
-    loadBooks();
+        for (const book of booksArray) {
+            const { error } = await supabaseClient
+                .from("books")
+                .insert([{ data: book }]);
+
+            if (error) {
+                alert("INSERT ERROR: " + error.message);
+                return;
+            }
+        }
+
+        alert("Upload complete!");
+        loadBooks();
+
+    } catch (err) {
+        alert("UPLOAD CRASH: " + err.message);
+    }
 }
 
 // START UPLOAD
@@ -104,18 +111,23 @@ async function startUpload() {
         alert("Fetch status: " + response.status);
 
         if (!response.ok) {
-            alert("Could no
+            alert("Could not find JSON file");
+            return;
+        }
 
-        const data = await response.json();
+        const text = await response.text();
+        alert("Raw JSON loaded!");
+
+        const data = JSON.parse(text);
+        alert("JSON parsed successfully!");
+
         await uploadJSONToSupabase(data);
 
     } catch (err) {
-        console.error(err);
-        alert("Error loading JSON file");
+        alert("ERROR: " + err.message);
     }
 }
 
-// LOAD ON START
 loadBooks();
 </script>
 
