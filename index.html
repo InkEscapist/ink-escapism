@@ -15,7 +15,6 @@ button { padding:10px; margin-top:10px; }
 
 <h1>My Webnovel Site</h1>
 
-<!-- Upload Button (TEMP) -->
 <button onclick="startUpload()">Upload Books</button>
 
 <h2>Books</h2>
@@ -37,6 +36,7 @@ async function loadBooks() {
 
     if (error) {
         console.error("LOAD ERROR:", error);
+        alert("Error loading books");
         return;
     }
 
@@ -54,11 +54,15 @@ function renderBooks() {
         return;
     }
 
-    booksData.forEach(book => {
+    booksData.forEach(row => {
+        const book = row.data; // 🔥 IMPORTANT FIX
+
+        if (!book) return;
+
         const div = document.createElement("div");
         div.className = "book";
         div.innerHTML = `
-            <h3>${book.title}</h3>
+            <h3>${book.title || 'No Title'}</h3>
             <p>${book.description || ''}</p>
         `;
         container.appendChild(div);
@@ -67,9 +71,6 @@ function renderBooks() {
 
 // UPLOAD JSON TO SUPABASE
 async function uploadJSONToSupabase(jsonData) {
-    console.log("Uploading data:", jsonData);
-
-    // handle both formats: array OR { books: [] }
     const booksArray = Array.isArray(jsonData) ? jsonData : jsonData.books;
 
     if (!booksArray) {
@@ -80,12 +81,12 @@ async function uploadJSONToSupabase(jsonData) {
     for (const book of booksArray) {
         const { error } = await supabaseClient
             .from("books")
-            .insert([book]);
+            .insert([{ data: book }]); // 🔥 IMPORTANT FIX
 
         if (error) {
             console.error("Insert error:", error);
-        } else {
-            console.log("Inserted:", book.title);
+            alert("Insert failed: " + error.message);
+            return;
         }
     }
 
@@ -94,6 +95,32 @@ async function uploadJSONToSupabase(jsonData) {
 }
 
 // START UPLOAD
+async function startUpload() {
+    alert("Upload started...");
+
+    try {
+        const response = await fetch("./ink-escapism-books.json");
+
+        if (!response.ok) {
+            alert("Could not find JSON file");
+            return;
+        }
+
+        const data = await response.json();
+        await uploadJSONToSupabase(data);
+
+    } catch (err) {
+        console.error(err);
+        alert("Error loading JSON file");
+    }
+}
+
+// LOAD ON START
+loadBooks();
+</script>
+
+</body>
+</html>// START UPLOAD
 async function startUpload() {
     alert("Upload started...");
 
