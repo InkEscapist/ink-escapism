@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ink Escapism</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  :root {
+    --ink-bg: #ffffff;
+    --ink-text: #111111;
+    --ink-muted: #6b7280;
+    --ink-border: #e5e7eb;
+    --ink-card: #f9f9f9;
+    --ink-accent: #111111;
+    --ink-accent-text: #ffffff;
+    --ink-purple: #7c3aed;
+  }
+  .dark-mode {
+    --ink-bg: #0f0f0f;
+    --ink-text: #f0ece4;
+    --ink-muted: #9ca3af;
+    --ink-border: #2a2a2a;
+    --ink-card: #1a1a1a;
+    --ink-accent: #f0ece4;
+    --ink-accent-text: #0f0f0f;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink-bg);
+    color: var(--ink-text);
+    transition: background 0.3s, color 0.3s;
+  }
+  .title-font { font-family: 'Cinzel', serif; }
+
+  /* Admin toggle switch */
+  .toggle-track {
+    width: 44px; height: 24px;
+    background: #d1d5db;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-track.on { background: #7c3aed; }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(20px); }
+
+  .chapter-card {
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    background: var(--ink-card);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .admin-input {
+    width: 100%;
+    border: 1px solid var(--ink-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    background: var(--ink-bg);
+    color: var(--ink-text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .admin-input:focus { border-color: #7c3aed; }
+  .admin-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .btn-primary {
+    background: var(--ink-accent);
+    color: var(--ink-accent-text);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.8; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--ink-border);
+    color: var(--ink-text);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-ghost:hover { background: var(--ink-border); }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-danger:hover { background: #fee2e2; }
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--ink-border);
+    margin: 24px 0;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge-ongoing  { background: #dcfce7; color: #166534; }
+  .badge-completed{ background: #dbeafe; color: #1e40af; }
+  .badge-upcoming { background: #fef9c3; color: #854d0e; }
+  .dark-mode .badge-ongoing  { background: #14532d; color: #bbf7d0; }
+  .dark-mode .badge-completed{ background: #1e3a8a; color: #bfdbfe; }
+  .dark-mode .badge-upcoming { background: #713f12; color: #fef08a; }
+
+  /* Patreon-style button */
+  .patreon-btn {
+    background: linear-gradient(135deg, #f96854, #ff424d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(249,104,84,0.35);
+  }
+  .patreon-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(249,104,84,0.45);
+  }
+  .nav-link {
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-link:hover { color: var(--ink-text); background: var(--ink-border); }
+
+  /* Comments */
+  .comment-bubble {
+    background: var(--ink-card);
+    border: 1px solid var(--ink-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    animation: fadeUp 0.25s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .comment-input {
+    width: 100%;
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    background: var(--ink-bg);
+    color: var(--ink-text);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  .comment-input:focus { border-color: #7c3aed; }
+  .like-btn {
+    background: none;
+    border: 1px solid var(--ink-border);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--ink-muted);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .like-btn.liked { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+  .dark-mode .like-btn.liked { background: #422006; border-color: #854d0e; color: #fde047; }
+
+  /* Prevent text selection in reader */
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Other books shelf */
+  .shelf-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid var(--ink-border);
+    border-radius: 12px;
+    background: var(--ink-card);
+    padding: 12px;
+    text-decoration: none;
+    color: var(--ink-text);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .shelf-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+/* ─── Storage ─────────────────────────────────────────────── */
+function useStorage() {
+  const [data, setData] = React.useState(() => {
+    try {
+      const s = localStorage.getItem("ink-data-v2");
+      return s ? JSON.parse(s) : { books: [] };
+    } catch { return { books: [] }; }
+  });
+  React.useEffect(() => {
+    localStorage.setItem("ink-data-v2", JSON.stringify(data));
+  }, [data]);
+  return [data, setData];
+}
+
+/* ─── Dark mode context ───────────────────────────────────── */
+const DarkCtx = React.createContext(false);
+
+/* ─── Header ──────────────────────────────────────────────── */
+function Header({ dark, setDark }) {
+  const route = location.hash;
+  return (
+    <header style={{ borderBottom: '1px solid var(--ink-border)' }}>
+      <div className="text-center py-10">
+        <h1 className="title-font text-5xl mb-1" style={{ color: 'var(--ink-text)' }}>
+          Ink Escapism
+        </h1>
+        <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>Chinese Webnovel Translations</p>
+      </div>
+      <img src="header-art.jpg" className="w-full object-cover" style={{ maxHeight: 280 }}
+           onError={e => e.target.style.display='none'} />
+      <div className="flex items-center justify-between px-6 py-3" style={{ maxWidth: 900, margin: '0 auto' }}>
+        <nav className="flex gap-1">
+          <a className="nav-link" href="#">Home</a>
+          <a className="nav-link" href="#/admin">Admin</a>
+        </nav>
+        <button
+          onClick={() => setDark(!dark)}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--ink-border)',
+            color: 'var(--ink-text)',
+            borderRadius: 8,
+            padding: '5px 14px',
+            fontSize: 13,
+            cursor: 'pointer'
+          }}>
+          {dark ? '☀ Light' : '☾ Dark'}
+
+<button
+  onClick={() => {
+    try {
+      const raw = localStorage.getItem("ink-data-v2");
+      if (!raw) {
+        alert("No data found.");
+        return;
+      }
+
+      const data = JSON.parse(raw);
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ink-escapism-books.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Export failed.");
+      console.error(e);
+    }
+  }}
+  style={{
+    background: "#16a34a",
+    color: "white",
+    border: "none",
+    borderRadius: 8,
+    padding: "5px 14px",
+    fontSize: 13,
+    cursor: "pointer",
+    marginLeft: 8
+  }}
+>
+  ⬇ Export JSON
+</button>
+
+        </button>
+      </div>
+    </header>
+  );
+}
+
+/* ─── Home ────────────────────────────────────────────────── */
+function Home({ data }) {
+  const section = s => data.books.filter(b => b.status === s);
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
+      <BookSection title="Ongoing Translations"  books={section("ongoing")}  />
+      <BookSection title="Completed Translations" books={section("completed")} />
+      <BookSection title="Upcoming Translations"  books={section("upcoming")}  />
+      {!data.books.length &&
+        <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 80, fontSize: 16 }}>
+          No books yet. Head to Admin to add some.
+        </p>
+      }
+    </div>
+  );
+}
+
+function BookSection({ title, books }) {
+  if (!books.length) return null;
+  return (
+    <div style={{ marginBottom: 48 }}>
+      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--ink-text)' }}>{title}</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 20 }}>
+        {books.map(b => (
+          <a key={b.id} href={`#/book/${b.id}`}
+            style={{
+              display: 'block',
+              border: '1px solid var(--ink-border)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              textDecoration: 'none',
+              color: 'var(--ink-text)',
+              background: 'var(--ink-card)',
+              transition: 'box-shadow 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow='0 8px 30px rgba(0,0,0,0.1)'; e.currentTarget.style.transform='translateY(-2px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='none'; }}>
+            {b.cover
+              ? <img src={b.cover} style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }} />
+              : <div style={{ width: '100%', height: 200, background: 'var(--ink-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 40 }}>📖</span>
+                </div>
+            }
+            <div style={{ padding: '12px 14px' }}>
+              <div style={{ marginBottom: 4 }}>
+                <span className={`badge badge-${b.status}`}>{b.status}</span>
+              </div>
+              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{b.title}</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-muted)' }}>{b.author}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Book Page ───────────────────────────────────────────── */
+function BookPage({ data }) {
+  const id = location.hash.split("/")[2];
+  const book = data.books.find(b => b.id === id);
+  if (!book) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>Book not found.</div>;
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 16px' }}>
+      <a href="#" style={{ color: 'var(--ink-muted)', fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
+      <div style={{ display: 'flex', gap: 28, marginTop: 20, flexWrap: 'wrap' }}>
+        {book.cover
+          ? <img src={book.cover} style={{ width: 160, height: 230, objectFit: 'cover', borderRadius: 10, flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }} />
+          : <div style={{ width: 160, height: 230, background: 'var(--ink-border)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, flexShrink: 0 }}>📖</div>
+        }
+        <div style={{ flex: 1 }}>
+          <span className={`badge badge-${book.status}`} style={{ marginBottom: 8 }}>{book.status}</span>
+          <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{book.title}</h1>
+          <p style={{ color: 'var(--ink-muted)', marginBottom: 16 }}>by {book.author}</p>
+          {book.patreon && book.showPatreonOnLast &&
+            <a href={book.patreon} target="_blank" className="patreon-btn" style={{ marginBottom: 16 }}>
+              🔥 Read Advanced Chapters on Patreon
+            </a>
+          }
+          <a href={`#/read/${book.id}`} className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none', marginTop: 8 }}>
+            Read Now →
+          </a>
+        </div>
+      </div>
+      <hr className="section-divider" style={{ marginTop: 28 }} />
+      <h2 style={{ fontWeight: 700, marginBottom: 10 }}>Synopsis</h2>
+      <p style={{ lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>{book.synopsis}</p>
+      {book.chapters?.length > 0 &&
+        <div style={{ marginTop: 24 }}>
+          <h2 style={{ fontWeight: 700, marginBottom: 10 }}>Chapters ({book.chapters.length})</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {book.chapters.map((c, i) => (
+              <a key={i} href={`#/read/${book.id}/${i}`} style={{ textDecoration: 'none', color: 'var(--ink-text)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--ink-border)', fontSize: 14, background: 'var(--ink-card)' }}>
+                {i + 1}. {c.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      }
+    </div>
+  );
+}
+
+/* ─── Comments storage (separate from book data) ──────────── */
+function useComments(bookId, chapterIdx) {
+  const key = `ink-comments-${bookId}-${chapterIdx}`;
+  const [comments, setComments] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(key)) || []; }
+    catch { return []; }
+  });
+  // Reload whenever chapter changes
+  React.useEffect(() => {
+    try { setComments(JSON.parse(localStorage.getItem(key)) || []); }
+    catch { setComments([]); }
+  }, [key]);
+  function save(next) {
+    setComments(next);
+    localStorage.setItem(key, JSON.stringify(next));
+  }
+  return [comments, save];
+}
+
+/* ─── Comment Section ─────────────────────────────────────── */
+function CommentSection({ bookId, chapterIdx }) {
+  const [comments, save] = useComments(bookId, chapterIdx);
+  const [name, setName]   = React.useState('');
+  const [text, setText]   = React.useState('');
+  const [likedIds, setLikedIds] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('ink-likes')) || {}; }
+    catch { return {}; }
+  });
+  const [err, setErr] = React.useState('');
+
+  function submit() {
+    if (!name.trim()) { setErr('Please enter a name.'); return; }
+    if (!text.trim()) { setErr('Please write something.'); return; }
+    const comment = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      text: text.trim(),
+      likes: 0,
+      ts: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    };
+    save([...comments, comment]);
+    setText('');
+    setErr('');
+  }
+
+  function toggleLike(id) {
+    const already = likedIds[id];
+    const nextLiked = { ...likedIds, [id]: !already };
+    setLikedIds(nextLiked);
+    localStorage.setItem('ink-likes', JSON.stringify(nextLiked));
+    save(comments.map(c =>
+      c.id === id ? { ...c, likes: (c.likes || 0) + (already ? -1 : 1) } : c
+    ));
+  }
+
+  function deleteComment(id) {
+    save(comments.filter(c => c.id !== id));
+  }
+
+  return (
+    <div style={{ marginTop: 48 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--ink-border)' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>
+          💬 {comments.length} Comment{comments.length !== 1 ? 's' : ''}
+        </span>
+        <div style={{ flex: 1, height: 1, background: 'var(--ink-border)' }} />
+      </div>
+
+      {/* Existing comments */}
+      {comments.length === 0 &&
+        <p style={{ color: 'var(--ink-muted)', fontSize: 14, textAlign: 'center', marginBottom: 20 }}>
+          Be the first to comment on this chapter!
+        </p>
+      }
+      {comments.map(c => (
+        <div key={c.id} className="comment-bubble">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Avatar */}
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: `hsl(${[...c.name].reduce((a,ch)=>a+ch.charCodeAt(0),0) % 360}, 60%, 70%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: 13, color: '#fff', flexShrink: 0,
+              }}>
+                {c.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</span>
+                <span style={{ color: 'var(--ink-muted)', fontSize: 12, marginLeft: 8 }}>{c.ts}</span>
+              </div>
+            </div>
+            <button onClick={() => deleteComment(c.id)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', fontSize: 16, lineHeight: 1, padding: '0 4px' }}
+              title="Delete comment">×</button>
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.7, margin: '0 0 10px 40px', color: 'var(--ink-text)', whiteSpace: 'pre-wrap' }}>{c.text}</p>
+          <div style={{ marginLeft: 40 }}>
+            <button className={`like-btn${likedIds[c.id] ? ' liked' : ''}`} onClick={() => toggleLike(c.id)}>
+              {likedIds[c.id] ? '♥' : '♡'} {c.likes || 0}
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* New comment form */}
+      <div style={{ border: '1px solid var(--ink-border)', borderRadius: 14, padding: 16, background: 'var(--ink-card)', marginTop: 8 }}>
+        <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Leave a comment</p>
+        <input
+          className="comment-input"
+          placeholder="Your name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          style={{ marginBottom: 10, borderRadius: 8, padding: '8px 12px' }}
+        />
+        <textarea
+          className="comment-input"
+          placeholder="Share your thoughts on this chapter…"
+          rows={3}
+          value={text}
+          onChange={e => setText(e.target.value)}
+          style={{ marginBottom: err ? 6 : 12 }}
+        />
+        {err && <p style={{ color: '#dc2626', fontSize: 12, marginBottom: 8 }}>{err}</p>}
+        <button className="btn-primary" onClick={submit}>Post Comment</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Other Books shelf ───────────────────────────────────── */
+function OtherBooks({ allBooks, currentBookId }) {
+  const others = allBooks.filter(b => b.id !== currentBookId && b.status !== 'upcoming');
+  if (!others.length) return null;
+  return (
+    <div style={{ marginTop: 48 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--ink-border)' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>
+          📚 More to Read
+        </span>
+        <div style={{ flex: 1, height: 1, background: 'var(--ink-border)' }} />
+      </div>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>
+        Enjoyed this one? Dive into another story.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {others.map(b => (
+          <a key={b.id} href={`#/book/${b.id}`} className="shelf-card">
+            {b.cover
+              ? <img src={b.cover} style={{ width: 54, height: 76, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+              : <div style={{ width: 54, height: 76, background: 'var(--ink-border)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>📖</div>
+            }
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ marginBottom: 3 }}>
+                <span className={`badge badge-${b.status}`}>{b.status}</span>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{b.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 6 }}>by {b.author}</div>
+              {b.synopsis &&
+                <div style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {b.synopsis}
+                </div>
+              }
+            </div>
+            <div style={{ color: 'var(--ink-muted)', fontSize: 18, alignSelf: 'center', flexShrink: 0 }}>→</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Reader ──────────────────────────────────────────────── */
+function Reader({ data }) {
+  const parts = location.hash.split("/");
+  const id = parts[2];
+  const chIdx = parts[3] !== undefined ? parseInt(parts[3]) : 0;
+  const book = data.books.find(b => b.id === id);
+  const [showIndex, setShowIndex] = React.useState(false);
+
+  React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
+
+  if (!book) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>Book not found.</div>;
+  const chapters = book.chapters || [];
+  if (!chapters.length) return (
+    <div style={{ padding: 60, textAlign: 'center', color: 'var(--ink-muted)' }}>
+      <p>No chapters yet.</p>
+      <a href={`#/book/${book.id}`} style={{ color: 'var(--ink-text)', fontSize: 13, textDecoration: 'none' }}>← Back to book</a>
+    </div>
+  );
+
+  const current = Math.max(0, Math.min(chIdx, chapters.length - 1));
+  const chapter = chapters[current];
+  const isFirst = current === 0;
+  const isLast  = current === chapters.length - 1;
+
+  const navBar = (top) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 8, padding: '12px 0',
+      borderTop: top ? 'none' : '1px solid var(--ink-border)',
+      borderBottom: top ? '1px solid var(--ink-border)' : 'none',
+      marginBottom: top ? 28 : 0, marginTop: top ? 0 : 28,
+    }}>
+      {/* Prev */}
+      <a href={isFirst ? `#/book/${book.id}` : `#/read/${book.id}/${current - 1}`}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '8px 14px', borderRadius: 8,
+          border: '1px solid var(--ink-border)',
+          background: 'var(--ink-card)', color: 'var(--ink-text)',
+          textDecoration: 'none', fontSize: 13, fontWeight: 600,
+          opacity: 1, whiteSpace: 'nowrap',
+        }}>
+        ← {isFirst ? 'Book page' : 'Prev'}
+      </a>
+
+      {/* Chapter index toggle */}
+      <button onClick={() => setShowIndex(s => !s)}
+        style={{
+          flex: 1, padding: '8px 10px', borderRadius: 8,
+          border: '1px solid var(--ink-border)',
+          background: showIndex ? 'var(--ink-accent)' : 'var(--ink-card)',
+          color: showIndex ? 'var(--ink-accent-text)' : 'var(--ink-muted)',
+          fontSize: 13, cursor: 'pointer', fontWeight: 600,
+          maxWidth: 220, margin: '0 auto',
+        }}>
+        ☰ Ch. {current + 1} / {chapters.length}
+      </button>
+
+      {/* Next */}
+      {isLast ? (
+        <span style={{
+          padding: '8px 14px', borderRadius: 8,
+          border: '1px solid var(--ink-border)',
+          background: 'var(--ink-card)', color: 'var(--ink-muted)',
+          fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+        }}>End ✓</span>
+      ) : (
+        <a href={`#/read/${book.id}/${current + 1}`}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '8px 14px', borderRadius: 8,
+            border: '1px solid var(--ink-border)',
+            background: 'var(--ink-card)', color: 'var(--ink-text)',
+            textDecoration: 'none', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+          }}>
+          Next →
+        </a>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
+      {/* Book breadcrumb */}
+      <a href={`#/book/${book.id}`}
+        style={{ color: 'var(--ink-muted)', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 }}>
+        ← {book.title}
+      </a>
+
+      {/* Top nav */}
+      {navBar(true)}
+
+      {/* Chapter index panel */}
+      {showIndex && (
+        <div style={{
+          border: '1px solid var(--ink-border)', borderRadius: 12,
+          background: 'var(--ink-card)', padding: 16, marginBottom: 24,
+          maxHeight: 320, overflowY: 'auto',
+        }}>
+          <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-muted)', marginBottom: 10 }}>
+            Chapter Index
+          </p>
+          {chapters.map((c, i) => (
+            <a key={i}
+              href={`#/read/${book.id}/${i}`}
+              onClick={() => setShowIndex(false)}
+              style={{
+                display: 'block', padding: '7px 10px', borderRadius: 8,
+                textDecoration: 'none', fontSize: 14,
+                color: i === current ? 'var(--ink-accent-text)' : 'var(--ink-text)',
+                background: i === current ? 'var(--ink-accent)' : 'transparent',
+                fontWeight: i === current ? 700 : 400,
+                marginBottom: 2,
+              }}>
+              {i + 1}. {c.title}
+              {i === current && <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.7 }}>← reading</span>}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Chapter content */}
+      <div className="no-select" onContextMenu={e => e.preventDefault()}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
+          Chapter {current + 1}: {chapter.title}
+        </h2>
+        <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+          {chapter.content}
+        </div>
+      </div>
+
+      {/* Patreon CTA on last chapter */}
+      {isLast && book.patreon && book.showPatreonOnLast && (
+        <div style={{
+          marginTop: 48, padding: 28,
+          background: 'var(--ink-card)', borderRadius: 16,
+          border: '1px solid var(--ink-border)', textAlign: 'center',
+        }}>
+          <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>You've reached the latest chapter! 🎉</p>
+          <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 20 }}>
+            Support the translator and read ahead on Patreon.
+          </p>
+          <a href={book.patreon} target="_blank" className="patreon-btn" style={{ maxWidth: 380, margin: '0 auto' }}>
+            🔥 Read Advanced Chapters on Patreon
+          </a>
+        </div>
+      )}
+
+      {/* Bottom nav */}
+      {navBar(false)}
+
+      {/* Comments — every chapter */}
+      <CommentSection bookId={book.id} chapterIdx={current} />
+
+      {/* Other books — last chapter only */}
+      {isLast && <OtherBooks allBooks={data.books} currentBookId={book.id} />}
+    </div>
+  );
+}
+
+/* ─── Admin ───────────────────────────────────────────────── */
+const ADMIN_PASSWORD = "changeme";
+
+function Toggle({ on, onToggle, label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={onToggle}>
+      <div className={`toggle-track ${on ? 'on' : ''}`}>
+        <div className="toggle-thumb" />
+      </div>
+      <span style={{ fontSize: 14, color: 'var(--ink-text)' }}>{label}</span>
+    </div>
+  );
+}
+
+function AdminBookCard({ book, data, setData }) {
+  const [expanded, setExpanded]               = React.useState(false);
+  const [showChapterForm, setShowChapterForm]  = React.useState(false);
+  const [chapForm, setChapForm]               = React.useState({ title: '', content: '' });
+  const [editingIdx, setEditingIdx]           = React.useState(null);
+  const [editForm, setEditForm]               = React.useState({ title: '', content: '' });
+  // Book-settings editing
+  const [editingBook, setEditingBook]         = React.useState(false);
+  const [bookForm, setBookForm]               = React.useState({});
+  // Chapter sort order: false = asc (Ch.1 first), true = desc (latest first)
+  const [sortDesc, setSortDesc]               = React.useState(false);
+  const bookCoverInputRef                     = React.useRef();
+
+  function updateBook(updates) {
+    setData({ ...data, books: data.books.map(b => b.id === book.id ? { ...b, ...updates } : b) });
+  }
+  function deleteBook() {
+    if (!confirm(`Delete "${book.title}"? This cannot be undone.`)) return;
+    setData({ ...data, books: data.books.filter(b => b.id !== book.id) });
+  }
+  function openBookEdit() {
+    setBookForm({
+      title: book.title || '',
+      author: book.author || '',
+      synopsis: book.synopsis || '',
+      cover: book.cover || '',
+      status: book.status || 'ongoing',
+      patreon: book.patreon || '',
+      showPatreonOnLast: !!book.showPatreonOnLast,
+    });
+    setEditingBook(true);
+  }
+  function saveBookEdit() {
+    if (!bookForm.title.trim()) return alert('Title cannot be empty.');
+    updateBook({ ...bookForm });
+    setEditingBook(false);
+  }
+  function handleBookCoverUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setBookForm(f => ({ ...f, cover: ev.target.result }));
+    reader.readAsDataURL(file);
+  }
+  function addChapter() {
+    if (!chapForm.title.trim()) return;
+    updateBook({ chapters: [...(book.chapters || []), { ...chapForm }] });
+    setChapForm({ title: '', content: '' });
+    setShowChapterForm(false);
+  }
+  function deleteChapter(idx) {
+    if (!confirm('Delete this chapter?')) return;
+    updateBook({ chapters: book.chapters.filter((_, i) => i !== idx) });
+    if (editingIdx === idx) setEditingIdx(null);
+  }
+  function moveChapter(idx, dir) {
+    const chapters = [...book.chapters];
+    const swap = idx + dir;
+    if (swap < 0 || swap >= chapters.length) return;
+    [chapters[idx], chapters[swap]] = [chapters[swap], chapters[idx]];
+    updateBook({ chapters });
+  }
+  function startEdit(idx) {
+    setEditingIdx(idx);
+    setEditForm({ title: book.chapters[idx].title, content: book.chapters[idx].content });
+    setShowChapterForm(false);
+  }
+  function saveEdit() {
+    if (!editForm.title.trim()) return;
+    const chapters = book.chapters.map((c, i) => i === editingIdx ? { ...c, ...editForm } : c);
+    updateBook({ chapters });
+    setEditingIdx(null);
+  }
+  function cancelEdit() { setEditingIdx(null); }
+
+  const totalChapters = (book.chapters || []).length;
+  const isLastChapter = idx => idx === totalChapters - 1;
+
+  // Build display list with actual indices preserved
+  const displayChapters = React.useMemo(() => {
+    const list = (book.chapters || []).map((c, i) => ({ c, i }));
+    return sortDesc ? [...list].reverse() : list;
+  }, [book.chapters, sortDesc]);
+
+  return (
+    <div style={{ border: '1px solid var(--ink-border)', borderRadius: 12, background: 'var(--ink-card)', overflow: 'hidden', marginBottom: 12 }}>
+      {/* Book header row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer' }}
+           onClick={() => setExpanded(!expanded)}>
+        {book.cover
+          ? <img src={book.cover} style={{ width: 44, height: 60, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+          : <div style={{ width: 44, height: 60, background: 'var(--ink-border)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📖</div>
+        }
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>{book.title}</div>
+          <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
+            {book.author} · <span className={`badge badge-${book.status}`}>{book.status}</span>
+            {' '}· {totalChapters} chapter{totalChapters !== 1 ? 's' : ''}
+          </div>
+        </div>
+        <span style={{ color: 'var(--ink-muted)', fontSize: 18 }}>{expanded ? '▲' : '▼'}</span>
+      </div>
+
+      {expanded && (
+        <div style={{ borderTop: '1px solid var(--ink-border)', padding: '16px' }}>
+
+          {/* ── Edit Book Settings panel ── */}
+          {editingBook ? (
+            <div style={{ border: '2px solid #7c3aed', borderRadius: 12, padding: 16, background: 'var(--ink-bg)', marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ✏ Editing Book Settings
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label className="admin-label">Title *</label>
+                  <input className="admin-input" value={bookForm.title}
+                    onChange={e => setBookForm(f => ({ ...f, title: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="admin-label">Author</label>
+                  <input className="admin-input" value={bookForm.author}
+                    onChange={e => setBookForm(f => ({ ...f, author: e.target.value }))} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label className="admin-label">Synopsis</label>
+                <textarea className="admin-input" rows={4} value={bookForm.synopsis}
+                  onChange={e => setBookForm(f => ({ ...f, synopsis: e.target.value }))} />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label className="admin-label">Cover Image</label>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1 }}>
+                    <button className="btn-ghost" style={{ marginBottom: 6 }} onClick={() => bookCoverInputRef.current?.click()}>
+                      📂 Upload from Computer
+                    </button>
+                    <input ref={bookCoverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBookCoverUpload} />
+                    <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 4 }}>— or paste URL —</div>
+                    <input className="admin-input" placeholder="https://…"
+                      value={bookForm.cover.startsWith('data:') ? '(uploaded image)' : bookForm.cover}
+                      onChange={e => setBookForm(f => ({ ...f, cover: e.target.value }))} />
+                  </div>
+                  {bookForm.cover &&
+                    <img src={bookForm.cover} style={{ width: 60, height: 82, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--ink-border)' }}
+                      onError={e => e.target.style.display='none'} />
+                  }
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label className="admin-label">Status</label>
+                  <select className="admin-input" value={bookForm.status}
+                    onChange={e => setBookForm(f => ({ ...f, status: e.target.value }))}>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                    <option value="upcoming">Upcoming</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="admin-label">Patreon Link</label>
+                  <input className="admin-input" placeholder="https://patreon.com/…"
+                    value={bookForm.patreon}
+                    onChange={e => setBookForm(f => ({ ...f, patreon: e.target.value }))} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Toggle
+                  on={bookForm.showPatreonOnLast}
+                  onToggle={() => setBookForm(f => ({ ...f, showPatreonOnLast: !f.showPatreonOnLast }))}
+                  label="Show Patreon button after last chapter"
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn-primary" onClick={saveBookEdit}>💾 Save Settings</button>
+                <button className="btn-ghost" onClick={() => setEditingBook(false)}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 16 }}>
+              <button className="btn-ghost" style={{ fontSize: 13 }} onClick={openBookEdit}>
+                ⚙ Edit Book Settings (title, synopsis, Patreon…)
+              </button>
+            </div>
+          )}
+
+          {/* Patreon status indicator (when not editing) */}
+          {!editingBook && (
+            <div style={{ marginBottom: 16, padding: 14, background: 'var(--ink-bg)', borderRadius: 10, border: '1px solid var(--ink-border)' }}>
+              <Toggle
+                on={!!book.showPatreonOnLast}
+                onToggle={() => updateBook({ showPatreonOnLast: !book.showPatreonOnLast })}
+                label={book.showPatreonOnLast
+                  ? '✅ Patreon button shows after last chapter'
+                  : '⬜ Patreon button hidden (toggle to enable on last chapter)'
+                }
+              />
+              {book.showPatreonOnLast && !book.patreon &&
+                <p style={{ color: '#dc2626', fontSize: 12, marginTop: 8 }}>⚠ No Patreon link set — click "Edit Book Settings" to add one.</p>
+              }
+            </div>
+          )}
+
+          {/* ── Add chapter form (ABOVE the list) ── */}
+          <div style={{ marginBottom: 16 }}>
+            {showChapterForm ? (
+              <div style={{ border: '1px solid var(--ink-border)', borderRadius: 10, padding: 14, background: 'var(--ink-bg)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-muted)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  ➕ New Chapter
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label className="admin-label">Chapter Title</label>
+                  <input className="admin-input" placeholder="e.g. The Beginning" value={chapForm.title}
+                    onChange={e => setChapForm({ ...chapForm, title: e.target.value })} />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label className="admin-label">Chapter Content</label>
+                  <textarea className="admin-input" placeholder="Paste chapter content here…" rows={8}
+                    value={chapForm.content}
+                    onChange={e => setChapForm({ ...chapForm, content: e.target.value })} />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn-primary" onClick={addChapter}>Add Chapter</button>
+                  <button className="btn-ghost" onClick={() => setShowChapterForm(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button className="btn-ghost"
+                onClick={() => { setShowChapterForm(true); setEditingIdx(null); }}>
+                + Add Chapter
+              </button>
+            )}
+          </div>
+
+          {/* ── Chapters list ── */}
+          <div style={{ marginBottom: 12 }}>
+            {/* Header row with sort toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Chapters ({totalChapters})
+              </div>
+              {totalChapters > 1 && (
+                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }}
+                  onClick={() => setSortDesc(d => !d)}
+                  title="Toggle sort order">
+                  {sortDesc ? '↑ Oldest First' : '↓ Newest First'}
+                </button>
+              )}
+            </div>
+
+            {totalChapters === 0 &&
+              <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 8 }}>No chapters yet. Use "+ Add Chapter" above.</p>
+            }
+            {displayChapters.map(({ c, i }) => (
+              <div key={i}>
+                {/* ── Edit mode ── */}
+                {editingIdx === i ? (
+                  <div style={{ border: '2px solid #7c3aed', borderRadius: 10, padding: 14, background: 'var(--ink-bg)', marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      ✏ Editing Chapter {i + 1}
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <label className="admin-label">Chapter Title</label>
+                      <input className="admin-input" value={editForm.title}
+                        onChange={e => setEditForm({ ...editForm, title: e.target.value })} />
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <label className="admin-label">Chapter Content</label>
+                      <textarea className="admin-input" rows={10}
+                        value={editForm.content}
+                        onChange={e => setEditForm({ ...editForm, content: e.target.value })} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn-primary" onClick={saveEdit}>💾 Save Changes</button>
+                      <button className="btn-ghost" onClick={cancelEdit}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Normal view ── */
+                  <div className="chapter-card" style={{ marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {/* Order controls — always operate on actual array indices */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+                        <button className="btn-ghost" style={{ padding: '2px 7px', fontSize: 11 }}
+                          onClick={() => moveChapter(i, -1)} disabled={i === 0} title="Move up in list">▲</button>
+                        <button className="btn-ghost" style={{ padding: '2px 7px', fontSize: 11 }}
+                          onClick={() => moveChapter(i, 1)} disabled={isLastChapter(i)} title="Move down in list">▼</button>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                          Ch. {i + 1}: {c.title}
+                          {isLastChapter(i) && book.showPatreonOnLast &&
+                            <span style={{ fontSize: 11, background: '#f3e8ff', color: '#7c3aed', padding: '2px 8px', borderRadius: 99 }}>
+                              🔥 Patreon here
+                            </span>
+                          }
+                        </div>
+                        {c.content &&
+                          <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                            {c.content.substring(0, 120)}…
+                          </div>
+                        }
+                      </div>
+                      {/* Edit + Delete */}
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button className="btn-ghost" style={{ fontSize: 12, padding: '5px 10px' }}
+                          onClick={() => startEdit(i)} title="Edit chapter">✏ Edit</button>
+                        <button className="btn-danger" onClick={() => deleteChapter(i)} title="Delete chapter">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <hr className="section-divider" />
+          <button className="btn-danger" onClick={deleteBook} style={{ fontSize: 13 }}>
+            🗑 Delete Book
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Admin({ data, setData }) {
+  const [logged, setLogged] = React.useState(false);
+  const [pass, setPass] = React.useState("");
+  const [passErr, setPassErr] = React.useState(false);
+  const [form, setForm] = React.useState({
+    title: "", author: "", synopsis: "",
+    cover: "", status: "ongoing", patreon: "", showPatreonOnLast: false
+  });
+  const coverInputRef = React.useRef();
+
+  function login() {
+    if (pass === ADMIN_PASSWORD) { setLogged(true); setPassErr(false); }
+    else setPassErr(true);
+  }
+
+  function handleCoverUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setForm({ ...form, cover: ev.target.result });
+    reader.readAsDataURL(file);
+  }
+
+  function addBook() {
+    if (!form.title.trim()) return alert("Please enter a title.");
+    setData({
+      ...data,
+      books: [...data.books, { ...form, id: Date.now().toString(), chapters: [] }]
+    });
+    setForm({ title: "", author: "", synopsis: "", cover: "", status: "ongoing", patreon: "", showPatreonOnLast: false });
+  }
+
+  if (!logged) return (
+    <div style={{ maxWidth: 360, margin: '80px auto', padding: '0 16px' }}>
+      <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 4, color: 'var(--ink-text)' }}>Admin Login</h2>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 20 }}>Enter your admin password to continue.</p>
+      <label className="admin-label">Password</label>
+      <input className="admin-input" type="password" style={{ marginBottom: 12 }}
+        value={pass} placeholder="••••••••"
+        onChange={e => setPass(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && login()} />
+      {passErr && <p style={{ color: '#dc2626', fontSize: 13, marginBottom: 10 }}>Incorrect password.</p>}
+      <button className="btn-primary" onClick={login} style={{ width: '100%' }}>Login</button>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 16px' }}>
+      <h2 style={{ fontWeight: 800, fontSize: 24, marginBottom: 4, color: 'var(--ink-text)' }}>Admin Panel</h2>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 32 }}>Add books, manage chapters, and configure Patreon links.</p>
+
+      {/* Add Book Form */}
+      <div style={{ border: '1px solid var(--ink-border)', borderRadius: 14, background: 'var(--ink-card)', padding: 22, marginBottom: 36 }}>
+        <h3 style={{ fontWeight: 700, fontSize: 17, marginBottom: 18, color: 'var(--ink-text)' }}>➕ Add New Book</h3>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div>
+            <label className="admin-label">Title *</label>
+            <input className="admin-input" placeholder="Novel title"
+              value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
+          </div>
+          <div>
+            <label className="admin-label">Author</label>
+            <input className="admin-input" placeholder="Author name"
+              value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <label className="admin-label">Synopsis</label>
+          <textarea className="admin-input" placeholder="Book description…" rows={4}
+            value={form.synopsis} onChange={e => setForm({ ...form, synopsis: e.target.value })} />
+        </div>
+
+        {/* Cover upload */}
+        <div style={{ marginBottom: 14 }}>
+          <label className="admin-label">Cover Image</label>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div>
+              <button className="btn-ghost" onClick={() => coverInputRef.current?.click()} style={{ marginBottom: 6 }}>
+                📂 Upload from Computer
+              </button>
+              <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverUpload} />
+              <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 4 }}>— or paste a URL below —</div>
+              <input className="admin-input" placeholder="https://…" style={{ width: 300 }}
+                value={form.cover.startsWith('data:') ? '(uploaded image)' : form.cover}
+                onChange={e => setForm({ ...form, cover: e.target.value })} />
+            </div>
+            {form.cover &&
+              <img src={form.cover} style={{ width: 70, height: 95, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--ink-border)' }}
+                   onError={e => e.target.style.display='none'} />
+            }
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div>
+            <label className="admin-label">Status</label>
+            <select className="admin-input" value={form.status}
+              onChange={e => setForm({ ...form, status: e.target.value })}>
+              <option value="ongoing">Ongoing</option>
+              <option value="completed">Completed</option>
+              <option value="upcoming">Upcoming</option>
+            </select>
+          </div>
+          <div>
+            <label className="admin-label">Patreon Link</label>
+            <input className="admin-input" placeholder="https://patreon.com/…"
+              value={form.patreon} onChange={e => setForm({ ...form, patreon: e.target.value })} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <Toggle
+            on={form.showPatreonOnLast}
+            onToggle={() => setForm({ ...form, showPatreonOnLast: !form.showPatreonOnLast })}
+            label="Show Patreon button after last chapter"
+          />
+        </div>
+
+        <button className="btn-primary" onClick={addBook}>Add Book</button>
+      </div>
+
+      {/* Book list */}
+      <h3 style={{ fontWeight: 700, fontSize: 17, marginBottom: 14, color: 'var(--ink-text)' }}>
+        📚 Your Books ({data.books.length})
+      </h3>
+      {data.books.length === 0 &&
+        <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>No books yet. Add one above.</p>
+      }
+      {data.books.map(b => (
+        <AdminBookCard key={b.id} book={b} data={data} setData={setData} />
+      ))}
+    </div>
+  );
+}
+
+/* ─── App Shell ───────────────────────────────────────────── */
+function App() {
+  const [data, setData] = useStorage();
+  const [dark, setDark] = React.useState(false);
+  const [route, setRoute] = React.useState(location.hash);
+
+  React.useEffect(() => {
+    const handler = () => setRoute(location.hash);
+    window.addEventListener('hashchange', handler);
+    return () => window.removeEventListener('hashchange', handler);
+  }, []);
+
+  let page;
+  if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} />;
+  else if (route.startsWith("#/book/")) page = <BookPage data={data} />;
+  else if (route.startsWith("#/read/")) page = <Reader data={data} />;
+  else                                  page = <Home data={data} />;
+
+  return (
+    <div className={dark ? 'dark-mode' : ''} style={{ minHeight: '100vh', background: 'var(--ink-bg)', color: 'var(--ink-text)' }}>
+      <Header dark={dark} setDark={setDark} />
+      {page}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
