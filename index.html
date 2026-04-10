@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webnovel Site</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<style>
+body { font-family: Arial; padding:20px; }
+.book { border:1px solid #ccc; padding:10px; margin-bottom:10px; }
+button { padding:10px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<h1>My Webnovel Site</h1>
+
+<!-- Upload Button (TEMP) -->
+<button onclick="startUpload()">Upload Books</button>
+
+<h2>Books</h2>
+<div id="booksContainer"></div>
+
+<script>
+const SUPABASE_URL = "https://gwonpfnvrbvykgsgpnaq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_afqxmXgBz-skY4SplAZmvA_4n2sSr5D";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let booksData = [];
+
+// LOAD BOOKS
+async function loadBooks() {
+    const { data, error } = await supabaseClient
+        .from("books")
+        .select("*");
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    booksData = data;
+    renderBooks();
+}
+
+// RENDER
+function renderBooks() {
+    const container = document.getElementById("booksContainer");
+    container.innerHTML = "";
+
+    booksData.forEach(book => {
+        const div = document.createElement("div");
+        div.className = "book";
+        div.innerHTML = `
+            <h3>${book.title}</h3>
+            <p>${book.description || ''}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// UPLOAD JSON TO SUPABASE
+async function uploadJSONToSupabase(jsonData) {
+    for (const book of jsonData) {
+        const { error } = await supabaseClient
+            .from("books")
+            .insert([book]);
+
+        if (error) {
+            console.error("Insert error:", error);
+        } else {
+            console.log("Inserted:", book.title);
+        }
+    }
+
+    alert("Upload complete!");
+    loadBooks();
+}
+
+// START UPLOAD
+async function startUpload() {
+    const response = await fetch("ink-escapism-books.json");
+    const data = await response.json();
+
+    await uploadJSONToSupabase(data);
+}
+
+// LOAD ON START
+loadBooks();
+</script>
+
+</body>
+</html>
