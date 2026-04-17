@@ -334,7 +334,11 @@
       "recommendations": [
         {
           "bookId": "1775435546083",
-          "blurb": "Drama, Drama, and more exciting Drama. The house is ablaze."
+          "blurb": "Drama, Drama, and more exciting Drama. The house is ablaze!"
+        },
+        {
+          "bookId": "1775788486628",
+          "blurb": "Toxic ML alert!\nEmperor has a rebirth, chases wife with memories of what went wrong the first time."
         }
       ]
     },
