@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://inkescapist.github.io/ink-escapism/sitemap.xml
