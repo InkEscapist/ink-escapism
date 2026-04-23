@@ -799,7 +799,7 @@
       "cover": "https://www.image2url.com/r2/default/images/1776443595809-42f11fa9-0778-40ab-9e9c-7338cd975444.jpg",
       "status": "ongoing",
       "patreon": "https://www.patreon.com/collection/2121954?utm_campaign=collectionshare_creator&utm_content=android_share",
-      "showPatreonOnLast": false,
+      "showPatreonOnLast": true,
       "id": "1776443629230",
       "chapters": [
         {
