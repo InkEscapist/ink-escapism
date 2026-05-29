@@ -2030,8 +2030,8 @@
       "author": "Zhao Yunzi",
       "synopsis": "[Film/TV rights already sold. Drama titled  Yunchu's Vengeance to be released 2026]\n\nIn her past life, Yun Chu devoted herself entirely to supporting her husband, raising his illegitimate children, and helping the Xie family rise to power and prominence — only to be repaid with the most brutal betrayal. The entire Yun clan, over a hundred people, was executed. And the very child she had raised with her own hands forced poisoned wine down her throat.\nAs the poison burned through her, she made one vow: if she ever got another life, she would make every one of them suffer a hundredfold.\nShe fought with everything she had to break free from the endless cycle of fate — and was reborn at the age of twenty.\nShe opens her eyes to find a row of Xie family children standing before her, each warmly calling her \"Mother.\" These are the very people who destroyed the Yun clan, and she intends to spare not a single one.\nThe eldest loves studying? Then she'll cut off his path to a career in officialdom. The second loves martial arts? She'll make sure he can never set foot in the military. The eldest daughter craves power and status? She'll arrange a noble marriage — and a lifetime of widowhood. The youngest is useless? Then let him fend for himself.\nOn this path of revenge, Yun Chu will show no mercy.\nBut then —\n\"Mama!\"\n\"You're our mama!\"\nTwo soft little children press into her arms.\nA man stands before her: \"I raised them for four years. Now it's your turn.\"",
       "cover": "https://www.image2url.com/r2/default/images/1780052284088-5e6e039d-8295-4480-add1-3a7287ac3372.jpg",
-      "status": "upcoming",
-      "patreon": "",
+      "status": "ongoing",
+      "patreon": "https://www.patreon.com/collection/2189993",
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1780052865251",
@@ -2312,8 +2312,25 @@
           "status": "published"
         }
       ],
-      "recommendations": [],
-      "frontTags": []
+      "recommendations": [
+        {
+          "bookId": "1775435546083",
+          "blurb": ""
+        },
+        {
+          "bookId": "1776443629230",
+          "blurb": ""
+        },
+        {
+          "bookId": "1777691358789",
+          "blurb": ""
+        }
+      ],
+      "frontTags": [
+        "tag_1777957425566"
+      ],
+      "customBtnLabel": "",
+      "customBtnUrl": ""
     }
   ],
   "tags": [
