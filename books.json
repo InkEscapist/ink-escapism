@@ -2691,7 +2691,7 @@
       "customBtnUrl": "",
       "customBtnLabel": "",
       "recommendations": [],
-      "showPatreonOnLast": true,
+      "showPatreonOnLast": false,
       "chapters": [
         {
           "title": "Not Wanting to Become a Nun",
