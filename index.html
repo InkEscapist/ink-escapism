@@ -70,8 +70,7 @@
 <meta name="theme-color" content="#111111" />
 
 <!-- GoatCounter Analytics (privacy-friendly, works on GitHub Pages) -->
-<!-- SETUP: Replace YOUR-SITE-CODE below with the code from your GoatCounter account (goatcounter.com) -->
-<script data-goatcounter="https://YOUR-SITE-CODE.goatcounter.com/count"
+<script data-goatcounter="https://inkescapism.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;600&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
@@ -1733,7 +1732,7 @@ function AnalyticsDashboard({ data }) {
         Visits and reads are tracked locally from readers' browsers on your site.{' '}
         <strong>Note:</strong> these numbers reflect activity on this device/browser.
         For full cross-device traffic, see your{' '}
-        <a href="https://goatcounter.com" target="_blank" style={{ color: '#7c3aed' }}>GoatCounter dashboard</a>{' '}
+        <a href="https://dash.cloudflare.com" target="_blank" style={{ color: '#7c3aed' }}>Cloudflare Web Analytics dashboard</a>{' '}
         once you set up the code in the site's &lt;head&gt;.
       </p>
 
@@ -1835,17 +1834,18 @@ function AnalyticsDashboard({ data }) {
         )}
       </div>
 
-      {/* GoatCounter setup guide */}
+      {/* Cloudflare Analytics setup guide */}
       <div style={{ border: '1px dashed var(--ink-border)', borderRadius: 14, padding: 20, marginTop: 24 }}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🔧 Set Up Full Analytics (GoatCounter)</div>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>🔧 Set Up Full Analytics (Cloudflare)</div>
         <div style={{ fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
           <p style={{ marginBottom: 8 }}>The read counts above track activity on each device. For full cross-device visitor analytics, follow these steps:</p>
           <ol style={{ paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <li>Go to <a href="https://www.goatcounter.com" target="_blank" style={{ color: '#7c3aed' }}>goatcounter.com</a> and create a <strong>free account</strong>.</li>
-            <li>During signup, choose a site code (e.g. <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>inkescapism</code>).</li>
-            <li>Open your <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>index.html</code> file in a text editor.</li>
-            <li>Find the line that says <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>YOUR-SITE-CODE</code> and replace it with your actual GoatCounter site code.</li>
-            <li>Save and publish to GitHub. That's it! 🎉 View real-time traffic on your GoatCounter dashboard.</li>
+            <li>Go to <a href="https://dash.cloudflare.com/sign-up" target="_blank" style={{ color: '#7c3aed' }}>dash.cloudflare.com/sign-up</a> and create a <strong>free account</strong>.</li>
+            <li>In the dashboard, go to <strong>Web Analytics</strong> and click <strong>Add a site</strong>.</li>
+            <li>Enter your site address (e.g. <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>inkescapist.github.io/ink-escapism</code>) and click Done.</li>
+            <li>Cloudflare will show you a token. Open your <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>index.html</code> file and find the line with <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>YOUR-TOKEN-HERE</code>.</li>
+            <li>Replace <code style={{ background: 'var(--ink-border)', padding: '1px 5px', borderRadius: 4 }}>YOUR-TOKEN-HERE</code> with the token Cloudflare gave you.</li>
+            <li>Save and publish to GitHub. That's it! 🎉 View real-time traffic on your Cloudflare Web Analytics dashboard.</li>
           </ol>
         </div>
       </div>
@@ -2470,7 +2470,7 @@ function Toggle({ on, onToggle, label }) {
   );
 }
 
-function AdminBookCard({ book, data, setData }) {
+function AdminBookCard({ book, data, setData, onToggleArchive }) {
   const [expanded, setExpanded]               = React.useState(false);
   const [showChapterForm, setShowChapterForm]  = React.useState(false);
   const [chapForm, setChapForm]               = React.useState({ title: '', content: '' });
@@ -3269,9 +3269,20 @@ function AdminBookCard({ book, data, setData }) {
           </div>
 
           <hr className="section-divider" />
-          <button className="btn-danger" onClick={deleteBook} style={{ fontSize: 13 }}>
-            🗑 Delete Book
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-danger" onClick={deleteBook} style={{ fontSize: 13 }}>
+              🗑 Delete Book
+            </button>
+            {onToggleArchive && (
+              <button
+                onClick={() => { if (confirm(`Archive "${book.title}"? It will be hidden from your book list but unchanged for readers.`)) onToggleArchive(book.id); }}
+                title={book.archived ? "Unarchive this book" : "Archive this book"}
+                style={{ background: 'none', border: '1px solid var(--ink-border)', borderRadius: 6,
+                  padding: '6px 12px', fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer' }}>
+                📦 {book.archived ? 'Unarchive' : 'Archive'} Book
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -3402,16 +3413,8 @@ function BookListManager({ data, setData }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ color: 'var(--ink-muted)', fontSize: 18, padding: '0 4px', cursor: 'grab' }}>⠿</span>
           <div style={{ flex: 1 }}>
-            <AdminBookCard book={b} data={data} setData={setData} />
+            <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={toggleArchive} />
           </div>
-          <button
-            onClick={() => { if (confirm(`Archive "${b.title}"? It will be hidden from your book list but unchanged for readers.`)) toggleArchive(b.id); }}
-            title="Archive this book"
-            style={{ background: 'none', border: '1px solid var(--ink-border)', borderRadius: 6,
-              padding: '4px 8px', fontSize: 12, color: 'var(--ink-muted)', cursor: 'pointer',
-              whiteSpace: 'nowrap', flexShrink: 0 }}>
-            📦 Archive
-          </button>
         </div>
       </div>
     ))}
