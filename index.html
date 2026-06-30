@@ -99,10 +99,6 @@
     --ink-accent: #f0ece4;
     --ink-accent-text: #0f0f0f;
   }
-  html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
   body {
     font-family: 'Inter', sans-serif;
     background: var(--ink-bg);
@@ -1126,7 +1122,7 @@ function BookPage({ data, setData, remoteLoaded }) {
           ? <img src={book.cover} style={{ width: 160, height: 230, objectFit: 'cover', borderRadius: 10, flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }} />
           : <div style={{ width: 160, height: 230, background: 'var(--ink-border)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, flexShrink: 0 }}>📖</div>
         }
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <span className={`badge badge-${book.status}`} style={{ marginBottom: 8 }}>{book.status}</span>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{book.title}</h1>
           <p style={{ color: 'var(--ink-muted)', marginBottom: 16 }}>by {book.author}</p>
@@ -1980,7 +1976,7 @@ function TagsManager({ data, setData }) {
                 userSelect: 'none',
               }}>
               <span style={{ color: 'var(--ink-muted)', fontSize: 16, flexShrink: 0 }}>⠿</span>
-              <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--ink-text)' }}>{item.label}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--ink-text)' }}>{item.label}</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <button className="btn-ghost" style={{ padding: '2px 8px', fontSize: 11 }}
                   onClick={() => moveItem(i, i - 1)} disabled={i === 0} title="Move up">▲</button>
@@ -2055,7 +2051,7 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort }) {
           </>
         ) : (
           <>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink-text)' }}>🏷 {tag.name}</span>
               <span style={{ fontSize: 12, color: 'var(--ink-muted)', marginLeft: 10 }}>
                 {taggedBooks.length === 0 ? 'No books tagged yet' : `${taggedBooks.length} book${taggedBooks.length !== 1 ? 's' : ''}`}
@@ -2279,7 +2275,7 @@ function CollectionRow({ col, data, onRename, onDelete, onToggleBook }) {
           </>
         ) : (
           <>
-            <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+            <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>📁 {col.name}</span>
               <span style={{ fontSize: 12, color: 'var(--ink-muted)', marginLeft: 10 }}>
                 {books.length} book{books.length !== 1 ? 's' : ''}
@@ -2708,7 +2704,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
           ? <img src={book.cover} style={{ width: 44, height: 60, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
           : <div style={{ width: 44, height: 60, background: 'var(--ink-border)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📖</div>
         }
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{book.title}</div>
           <div style={{ fontSize: 12, color: 'var(--ink-muted)' }}>
             {book.author} · <span className={`badge badge-${book.status}`}>{book.status}</span>
@@ -2762,7 +2758,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
               <div style={{ marginBottom: 12 }}>
                 <label className="admin-label">Cover Image</label>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <button className="btn-ghost" style={{ marginBottom: 6 }} onClick={() => bookCoverInputRef.current?.click()}>
                       📂 Upload from Computer
                     </button>
@@ -2885,7 +2881,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
                       <select
                         className="admin-input"
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, minWidth: 0 }}
                         defaultValue=""
                         onChange={e => {
                           if (!e.target.value) return;
@@ -3024,7 +3020,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                 <div style={{ maxHeight: 240, overflowY: 'auto', border: '1px solid var(--ink-border)', borderRadius: 8, padding: 10, marginBottom: 12, background: 'var(--ink-card)' }}>
                   {docxPreview.chapters.map((c, i) => (
                     <div key={i} style={{ fontSize: 13, padding: '6px 4px', borderBottom: i < docxPreview.chapters.length - 1 ? '1px solid var(--ink-border)' : 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontWeight: 600, color: 'var(--ink-text)' }}>Chapter {(book.chapters||[]).length + i + 1}:</span>{' '}
                         {c.title}
                         <span style={{ color: 'var(--ink-muted)', fontSize: 11, marginLeft: 6 }}>
@@ -3416,7 +3412,7 @@ function BookListManager({ data, setData }) {
         }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ color: 'var(--ink-muted)', fontSize: 18, padding: '0 4px', cursor: 'grab' }}>⠿</span>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={toggleArchive} />
           </div>
         </div>
@@ -3434,7 +3430,7 @@ function BookListManager({ data, setData }) {
           <div style={{ marginTop: 10, paddingLeft: 12, borderLeft: '3px solid var(--ink-border)' }}>
             {archivedBooks.map(b => (
               <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, opacity: 0.7 }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <AdminBookCard book={b} data={data} setData={setData} />
                 </div>
                 <button
@@ -3619,7 +3615,7 @@ function Admin({ data, setData, pushToGitHub }) {
             }}>
             💾 Download books.json
           </button>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={{
               background: 'var(--ink-accent)', color: 'var(--ink-accent-text)', borderRadius: 8,
               padding: '11px 16px', fontWeight: 700, fontSize: 13,
