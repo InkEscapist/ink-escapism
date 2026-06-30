@@ -3357,7 +3357,6 @@ function BookListManager({ data, setData }) {
   const archivedBooks = data.books.filter(b => b.archived);
   const [dragIdx, setDragIdx] = React.useState(null);
   const [dragOver, setDragOver] = React.useState(null);
-  const [showArchive, setShowArchive] = React.useState(false);
   const [reorderMode, setReorderMode] = React.useState(false);
 
   function onDragStart(i) { setDragIdx(i); }
@@ -3424,34 +3423,6 @@ function BookListManager({ data, setData }) {
           <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={toggleArchive} />
         </div>
       ))
-    )}
-    {archivedBooks.length > 0 && (
-      <div style={{ marginTop: 20 }}>
-        <button onClick={() => setShowArchive(s => !s)}
-          style={{ background: 'none', border: '1px solid var(--ink-border)', borderRadius: 8,
-            padding: '8px 14px', fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6 }}>
-          {showArchive ? '▾' : '▸'} 📦 Archives ({archivedBooks.length})
-        </button>
-        {showArchive && (
-          <div style={{ marginTop: 10, paddingLeft: 12, borderLeft: '3px solid var(--ink-border)' }}>
-            {archivedBooks.map(b => (
-              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, opacity: 0.7 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <AdminBookCard book={b} data={data} setData={setData} />
-                </div>
-                <button
-                  onClick={() => toggleArchive(b.id)}
-                  style={{ background: 'none', border: '1px solid var(--ink-border)', borderRadius: 6,
-                    padding: '4px 8px', fontSize: 12, color: 'var(--ink-muted)', cursor: 'pointer',
-                    whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  ↩ Unarchive
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     )}
   </>);
 }
@@ -3532,6 +3503,7 @@ function Admin({ data, setData, pushToGitHub }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 28, borderBottom: '1px solid var(--ink-border)', paddingBottom: 0, flexWrap: 'wrap' }}>
         {[
           { id: 'books', label: '📚 Books' },
+          { id: 'archives', label: '📦 Archives' },
           { id: 'tags', label: '🏷 Front-Page Tags' },
           { id: 'collections', label: '📁 My Collections' },
           { id: 'analytics', label: '📊 Analytics' },
@@ -3555,6 +3527,42 @@ function Admin({ data, setData, pushToGitHub }) {
       {/* ── Analytics tab ── */}
       {adminTab === 'analytics' && <AnalyticsDashboard data={data} />}
 
+      {/* ── Archives tab ── */}
+      {adminTab === 'archives' && (() => {
+        const archivedBooks = data.books.filter(b => b.archived);
+        function unarchive(bookId) {
+          setData({ ...data, books: data.books.map(b =>
+            b.id === bookId ? { ...b, archived: false } : b
+          )});
+        }
+        return (
+          <div>
+            <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6, color: 'var(--ink-text)' }}>📦 Archived Books</h3>
+            <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+              Books here are hidden from your main book list but unchanged for readers. Unarchive to bring one back.
+            </p>
+            {archivedBooks.length === 0 ? (
+              <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>No archived books yet.</p>
+            ) : (
+              archivedBooks.map(b => (
+                <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, opacity: 0.85 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={() => unarchive(b.id)} />
+                  </div>
+                  <button
+                    onClick={() => unarchive(b.id)}
+                    style={{ background: 'none', border: '1px solid var(--ink-border)', borderRadius: 6,
+                      padding: '4px 8px', fontSize: 12, color: 'var(--ink-muted)', cursor: 'pointer',
+                      whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    ↩ Unarchive
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        );
+      })()}
+
       {/* ── Tags tab ── */}
       {adminTab === 'tags' && <TagsManager data={data} setData={setData} />}
 
@@ -3574,7 +3582,7 @@ function Admin({ data, setData, pushToGitHub }) {
           After adding or editing books and chapters, tap the button below to push your changes live. Readers will see the updates immediately.
         </div>
         <div style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', borderRadius: 8, padding: '8px 12px', marginBottom: 14, lineHeight: 1.6 }}>
-          💡 <strong>How it works:</strong> Your edits are saved locally in your browser automatically. When you're ready for readers to see them, click Publish. Use "Pull from GitHub" below to load whatever is currently live.
+          💡 <strong>How it works:</strong> Your edits are saved locally in your browser automatically. When you're ready for readers to see them, click Publish.
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
@@ -3586,25 +3594,6 @@ function Admin({ data, setData, pushToGitHub }) {
               boxShadow: '0 4px 14px rgba(124,58,237,0.35)'
             }}>
             🚀 Publish Changes
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm("This will replace your local draft with the version currently on GitHub. Any unpublished local edits will be lost. Continue?")) return;
-              const remote = await (async () => { try { return await ghLoad(true); } catch { return null; } })();
-              if (remote && remote.books) {
-                setData(remote);
-                alert("✅ Pulled latest data from GitHub into local storage.");
-              } else {
-                alert("⚠️ Could not reach GitHub or no data found.");
-              }
-            }}
-            style={{
-              background: 'transparent', color: 'var(--ink-text)',
-              border: '1px solid var(--ink-border)',
-              borderRadius: 8, padding: '11px 18px',
-              fontWeight: 600, fontSize: 13, cursor: 'pointer'
-            }}>
-            ⬇ Pull from GitHub
           </button>
           <button
             onClick={async () => {
