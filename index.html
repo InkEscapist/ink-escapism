@@ -3229,16 +3229,9 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   </div>
                 ) : (
                   /* ── Normal view ── */
-                  <div className="chapter-card" style={{ marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
-                      {/* Order controls — always operate on actual array indices */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
-                        <button className="btn-ghost" style={{ padding: '2px 7px', fontSize: 11 }}
-                          onClick={() => moveChapter(i, -1)} disabled={i === 0} title="Move up in list">▲</button>
-                        <button className="btn-ghost" style={{ padding: '2px 7px', fontSize: 11 }}
-                          onClick={() => moveChapter(i, 1)} disabled={isLastChapter(i)} title="Move down in list">▼</button>
-                      </div>
-                      <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                  <div className="chapter-card" style={{ marginBottom: 4, padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 150px', minWidth: 0 }}>
                         <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                           Chapter {i + 1}: {c.title}
                           {isLastChapter(i) && book.showPatreonOnLast &&
@@ -3247,19 +3240,14 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                             </span>
                           }
                         </div>
-                        {c.content &&
-                          <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                            {c.content.substring(0, 120)}…
-                          </div>
-                        }
                       </div>
                       {/* Preview + Edit + Delete */}
-                      <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
-                        <button className="btn-ghost" style={{ fontSize: 12, padding: '5px 10px' }}
-                          onClick={() => setPreviewIdx(i)} title="Preview chapter as reader">👁 Preview</button>
-                        <button className="btn-ghost" style={{ fontSize: 12, padding: '5px 10px' }}
-                          onClick={() => startEdit(i)} title="Edit chapter">✏ Edit</button>
-                        <button className="btn-danger" onClick={() => deleteChapter(i)} title="Delete chapter">✕</button>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 7px' }}
+                          onClick={() => setPreviewIdx(i)} title="Preview chapter as reader">👁</button>
+                        <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 7px' }}
+                          onClick={() => startEdit(i)} title="Edit chapter">✏</button>
+                        <button className="btn-danger" style={{ fontSize: 11, padding: '4px 7px' }} onClick={() => deleteChapter(i)} title="Delete chapter">✕</button>
                       </div>
                     </div>
                   </div>
@@ -3370,6 +3358,7 @@ function BookListManager({ data, setData }) {
   const [dragIdx, setDragIdx] = React.useState(null);
   const [dragOver, setDragOver] = React.useState(null);
   const [showArchive, setShowArchive] = React.useState(false);
+  const [reorderMode, setReorderMode] = React.useState(false);
 
   function onDragStart(i) { setDragIdx(i); }
   function onDragOver(e, i) { e.preventDefault(); setDragOver(i); }
@@ -3390,34 +3379,52 @@ function BookListManager({ data, setData }) {
   }
 
   return (<>
-    <h3 style={{ fontWeight: 700, fontSize: 17, marginBottom: 6, color: 'var(--ink-text)' }}>
-      📚 Your Books ({activeBooks.length})
-      <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ink-muted)', marginLeft: 8 }}>drag to reorder</span>
-    </h3>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+      <h3 style={{ fontWeight: 700, fontSize: 17, color: 'var(--ink-text)', margin: 0 }}>
+        📚 Your Books ({activeBooks.length})
+      </h3>
+      <button onClick={() => setReorderMode(r => !r)}
+        style={{ background: reorderMode ? '#7c3aed' : 'none', color: reorderMode ? '#fff' : 'var(--ink-muted)',
+          border: '1px solid var(--ink-border)', borderRadius: 8, padding: '6px 12px', fontSize: 13,
+          fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        {reorderMode ? '✓ Done Reordering' : '↕ Reorder'}
+      </button>
+    </div>
     {activeBooks.length === 0 &&
       <p style={{ color: 'var(--ink-muted)', fontSize: 14 }}>No books yet. Add one above.</p>
     }
-    {activeBooks.map((b, i) => (
-      <div key={b.id}
-        draggable
-        onDragStart={() => onDragStart(i)}
-        onDragOver={e => onDragOver(e, i)}
-        onDrop={() => onDrop(i)}
-        onDragEnd={onDragEnd}
-        style={{
-          opacity: dragIdx === i ? 0.4 : 1,
-          border: dragOver === i ? '2px dashed var(--ink-accent)' : '2px solid transparent',
-          borderRadius: 10, marginBottom: 4,
-          cursor: 'grab', transition: 'border 0.15s'
-        }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ color: 'var(--ink-muted)', fontSize: 18, padding: '0 4px', cursor: 'grab' }}>⠿</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={toggleArchive} />
+    {reorderMode ? (
+      /* ── Compact reorder list — titles only, no covers/tags, drag handle on each row ── */
+      <div style={{ border: '1px solid var(--ink-border)', borderRadius: 10, overflow: 'hidden' }}>
+        {activeBooks.map((b, i) => (
+          <div key={b.id}
+            draggable
+            onDragStart={() => onDragStart(i)}
+            onDragOver={e => onDragOver(e, i)}
+            onDrop={() => onDrop(i)}
+            onDragEnd={onDragEnd}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+              opacity: dragIdx === i ? 0.4 : 1,
+              borderTop: i === 0 ? 'none' : '1px solid var(--ink-border)',
+              background: dragOver === i ? 'var(--ink-card)' : 'transparent',
+              cursor: 'grab', transition: 'background 0.15s'
+            }}>
+            <span style={{ color: 'var(--ink-muted)', fontSize: 18, flexShrink: 0 }}>⠿</span>
+            <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+              {i + 1}. {b.title}
+            </span>
           </div>
-        </div>
+        ))}
       </div>
-    ))}
+    ) : (
+      /* ── Normal browsing mode — full cards, no drag handle ── */
+      activeBooks.map((b) => (
+        <div key={b.id} style={{ marginBottom: 4 }}>
+          <AdminBookCard book={b} data={data} setData={setData} onToggleArchive={toggleArchive} />
+        </div>
+      ))
+    )}
     {archivedBooks.length > 0 && (
       <div style={{ marginTop: 20 }}>
         <button onClick={() => setShowArchive(s => !s)}
