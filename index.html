@@ -1492,8 +1492,18 @@ function Reader({ data, setData, remoteLoaded }) {
     } catch {}
   }, [id, chIdx]);
 
+  const [notFound, setNotFound] = React.useState(false);
+  React.useEffect(() => {
+    if (!bookMeta && remoteLoaded) {
+      const t = setTimeout(() => setNotFound(true), 2000);
+      return () => clearTimeout(t);
+    } else {
+      setNotFound(false);
+    }
+  }, [bookMeta, remoteLoaded]);
+
   if (!book) {
-    if (!remoteLoaded) {
+    if (!remoteLoaded || !notFound) {
       return <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>⏳ Loading book…</div>;
     }
     return <div style={{ padding: 40, textAlign: 'center', color: 'var(--ink-muted)' }}>Book not found.</div>;
