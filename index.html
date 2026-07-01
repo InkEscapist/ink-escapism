@@ -1438,6 +1438,33 @@ function Reader({ data, setData, remoteLoaded }) {
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
+  // ── Adsterra ad injection ──
+  React.useEffect(() => {
+    function injectAd(containerId, key, width, height) {
+      const el = document.getElementById(containerId);
+      if (!el || el.hasChildNodes()) return;
+      const s1 = document.createElement('script');
+      s1.innerHTML = `var atOptions={'key':'${key}','format':'iframe','height':${height},'width':${width},'params':{}};`;
+      const s2 = document.createElement('script');
+      s2.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
+      el.appendChild(s1);
+      el.appendChild(s2);
+    }
+    function injectNative(containerId, src) {
+      const el = document.getElementById(containerId);
+      if (!el || el.hasChildNodes()) return;
+      const s = document.createElement('script');
+      s.async = true;
+      s.dataset.cfasync = 'false';
+      s.src = src;
+      el.parentNode.insertBefore(s, el);
+    }
+    injectAd('ad-top-banner', 'ef35c1eb4fcaa1c63817d8cc572faeee', 320, 50);
+    injectAd('ad-bottom-banner', '7eebd04377631c55e0fd84d6698abbb3', 300, 250);
+    injectNative('container-d39c8811d4dfebae44878e6f2c195386',
+      'https://pl30152693.effectivecpmnetwork.com/d39c8811d4dfebae44878e6f2c195386/invoke.js');
+  }, [chIdx]);
+
   // ── Track chapter read in localStorage for admin analytics ──
   React.useEffect(() => {
     if (!book) return;
@@ -1582,22 +1609,7 @@ function Reader({ data, setData, remoteLoaded }) {
       )}
 
       {/* ── Adsterra 320x50 mobile banner — top of chapter ── */}
-      <div style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden' }}>
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            var atOptions = {
-              'key': 'ef35c1eb4fcaa1c63817d8cc572faeee',
-              'format': 'iframe',
-              'height': 50,
-              'width': 320,
-              'params': {}
-            };
-            var s = document.createElement('script');
-            s.src = 'https://www.highperformanceformat.com/ef35c1eb4fcaa1c63817d8cc572faeee/invoke.js';
-            document.currentScript.parentNode.appendChild(s);
-          })();
-        `}} />
-      </div>
+      <div id="ad-top-banner" style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden', minHeight: 50 }}></div>
 
       {/* Chapter content — split at midpoint for native banner injection */}
       {(() => {
@@ -1616,8 +1628,7 @@ function Reader({ data, setData, remoteLoaded }) {
             </div>
 
             {/* ── Adsterra Native Banner — mid chapter ── */}
-            <div style={{ margin: '28px 0', overflow: 'hidden' }}>
-              <script async data-cfasync="false" src="https://pl30152693.effectivecpmnetwork.com/d39c8811d4dfebae44878e6f2c195386/invoke.js" />
+            <div id="ad-native-banner" style={{ margin: '28px 0', overflow: 'hidden' }}>
               <div id="container-d39c8811d4dfebae44878e6f2c195386"></div>
             </div>
 
@@ -1694,22 +1705,7 @@ function Reader({ data, setData, remoteLoaded }) {
       })()}
 
       {/* ── Adsterra 300x250 banner — before bottom nav ── */}
-      <div style={{ textAlign: 'center', margin: '28px 0', overflow: 'hidden' }}>
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            var atOptions = {
-              'key': '7eebd04377631c55e0fd84d6698abbb3',
-              'format': 'iframe',
-              'height': 250,
-              'width': 300,
-              'params': {}
-            };
-            var s = document.createElement('script');
-            s.src = 'https://www.highperformanceformat.com/7eebd04377631c55e0fd84d6698abbb3/invoke.js';
-            document.currentScript.parentNode.appendChild(s);
-          })();
-        `}} />
-      </div>
+      <div id="ad-bottom-banner" style={{ textAlign: 'center', margin: '28px 0', overflow: 'hidden', minHeight: 250 }}></div>
 
       {/* Bottom nav */}
       {navBar(false)}
