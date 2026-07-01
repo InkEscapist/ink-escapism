@@ -1581,15 +1581,52 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
-      {/* Chapter content */}
-      <div className="no-select" onContextMenu={e => e.preventDefault()}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
-          Chapter {current + 1}: {chapter.title}
-        </h2>
-        <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
-          {chapter.content}
-        </div>
+      {/* ── Adsterra 320x50 mobile banner — top of chapter ── */}
+      <div style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden' }}>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var atOptions = {
+              'key': 'ef35c1eb4fcaa1c63817d8cc572faeee',
+              'format': 'iframe',
+              'height': 50,
+              'width': 320,
+              'params': {}
+            };
+            var s = document.createElement('script');
+            s.src = 'https://www.highperformanceformat.com/ef35c1eb4fcaa1c63817d8cc572faeee/invoke.js';
+            document.currentScript.parentNode.appendChild(s);
+          })();
+        `}} />
       </div>
+
+      {/* Chapter content — split at midpoint for native banner injection */}
+      {(() => {
+        const content = chapter.content || '';
+        const paragraphs = content.split('\n');
+        const mid = Math.floor(paragraphs.length / 2);
+        const firstHalf = paragraphs.slice(0, mid).join('\n');
+        const secondHalf = paragraphs.slice(mid).join('\n');
+        return (
+          <div className="no-select" onContextMenu={e => e.preventDefault()}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
+              Chapter {current + 1}: {chapter.title}
+            </h2>
+            <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+              {firstHalf}
+            </div>
+
+            {/* ── Adsterra Native Banner — mid chapter ── */}
+            <div style={{ margin: '28px 0', overflow: 'hidden' }}>
+              <script async data-cfasync="false" src="https://pl30152693.effectivecpmnetwork.com/d39c8811d4dfebae44878e6f2c195386/invoke.js" />
+              <div id="container-d39c8811d4dfebae44878e6f2c195386"></div>
+            </div>
+
+            <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+              {secondHalf}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Read ahead CTA on last chapter — Patreon and/or custom button */}
       {isLast && (book.showPatreonOnLast || (book.customBtnLabel && book.customBtnUrl)) && (() => {
@@ -1655,6 +1692,24 @@ function Reader({ data, setData, remoteLoaded }) {
           </div>
         );
       })()}
+
+      {/* ── Adsterra 300x250 banner — before bottom nav ── */}
+      <div style={{ textAlign: 'center', margin: '28px 0', overflow: 'hidden' }}>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var atOptions = {
+              'key': '7eebd04377631c55e0fd84d6698abbb3',
+              'format': 'iframe',
+              'height': 250,
+              'width': 300,
+              'params': {}
+            };
+            var s = document.createElement('script');
+            s.src = 'https://www.highperformanceformat.com/7eebd04377631c55e0fd84d6698abbb3/invoke.js';
+            document.currentScript.parentNode.appendChild(s);
+          })();
+        `}} />
+      </div>
 
       {/* Bottom nav */}
       {navBar(false)}
