@@ -1422,19 +1422,21 @@ function Reader({ data, setData, remoteLoaded }) {
 
   // Lazy-load full book with chapters if not already loaded
   React.useEffect(() => {
-    if (!bookMeta) return;
-    if (bookMeta.chapters && bookMeta.chapters.length > 0) {
-      setBook(bookMeta); return;
+    if (!remoteLoaded) return;
+    const meta = data.books.find(b => b.id === id);
+    if (!meta) return;
+    if (meta.chapters && meta.chapters.length > 0) {
+      setBook(meta); return;
     }
     ghLoadBook(id).then(b => {
       if (b) {
         setBook(b);
         setData({ ...data, books: data.books.map(x => x.id === id ? b : x) });
       } else {
-        setBook(bookMeta);
+        setBook(meta);
       }
     });
-  }, [id]);
+  }, [id, remoteLoaded]);
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
