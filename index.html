@@ -67,6 +67,8 @@
 <!-- Favicon: Ink Drop Logo -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
+<!-- Monetag Vignette Banner -->
+<script>(function(s){s.dataset.zone='11232487',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 <meta name="monetag" content="45d7ae8db3afc70ff8ba34895d1417bd">
 <meta name="theme-color" content="#111111" />
 
@@ -1441,15 +1443,14 @@ function Reader({ data, setData, remoteLoaded }) {
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
-  // ── Monetag Multitag ad injection ──
+  // ── Monetag In-Page Push — injected once per session ──
   React.useEffect(() => {
-    if (document.getElementById('monetag-multitag')) return;
+    if (document.getElementById('monetag-inpage')) return;
     const s = document.createElement('script');
-    s.id = 'monetag-multitag';
-    s.src = 'https://quge5.com/88/tag.min.js';
-    s.setAttribute('data-zone', '255724');
+    s.id = 'monetag-inpage';
+    s.dataset.zone = '11232510';
+    s.src = 'https://nap5k.com/tag.min.js';
     s.async = true;
-    s.dataset.cfasync = 'false';
     document.head.appendChild(s);
   }, []);
 
@@ -1606,6 +1607,9 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
+      {/* ── Monetag In-Page Push placement — top of chapter ── */}
+      <div id="monetag-inpage-top" style={{ margin: '12px 0' }}></div>
+
       {/* Chapter content — split at midpoint for native banner injection */}
       {(() => {
         const content = chapter.content || '';
@@ -1693,6 +1697,9 @@ function Reader({ data, setData, remoteLoaded }) {
           </div>
         );
       })()}
+
+      {/* ── Monetag In-Page Push placement — before bottom nav ── */}
+      <div id="monetag-inpage-bottom" style={{ margin: '24px 0' }}></div>
 
       {/* Bottom nav */}
       {navBar(false)}
