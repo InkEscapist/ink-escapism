@@ -1441,32 +1441,41 @@ function Reader({ data, setData, remoteLoaded }) {
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
-  // ── Monetag In-Page Push — injected once per session ──
+  // ── HilltopAds In-Page Push — injected once per session ──
   React.useEffect(() => {
-    if (document.getElementById('monetag-inpage')) return;
+    if (document.getElementById('hilltop-inpage')) return;
     const s = document.createElement('script');
-    s.id = 'monetag-inpage';
-    s.dataset.zone = '11232510';
-    s.src = 'https://nap5k.com/tag.min.js';
+    s.id = 'hilltop-inpage';
     s.async = true;
+    s.referrerPolicy = 'no-referrer-when-downgrade';
+    s.src = '//pricklyassociation.com/bsX/V.sId/GXl/0pYKW/cu/seHmI9YuSZ_UKlTkKPpTwcYxfOqDYkU1QOYDPExtwNXziEK4PO/THUW4wNjQt';
     document.head.appendChild(s);
   }, []);
 
-  // ── HilltopAds banner injection ──
+  // ── HilltopAds + MyBid banner injection ──
   React.useEffect(() => {
-    function injectHilltop(containerId, src) {
+    function injectScript(containerId, src, referrer) {
       const el = document.getElementById(containerId);
       if (!el || el.hasChildNodes()) return;
       const s = document.createElement('script');
       s.async = true;
-      s.referrerPolicy = 'no-referrer-when-downgrade';
+      if (referrer) s.referrerPolicy = referrer;
       s.src = src;
       el.appendChild(s);
     }
-    injectHilltop('hilltop-top',
-      '//pricklyassociation.com/bJXOV.sAdiGblF0oYGWmcY/Seime9/uWZnU/ldktPhTJcqxMOZDYgk5tN/TBclteNXzTEq4wODDVk/2KMuQ-');
-    injectHilltop('hilltop-bottom',
-      '//pricklyassociation.com/b/XRVWs.dSGTl/0xYIW/c_/veumb9UuBZZUIlnkkPmTuczxoOCD/gF5LN/DWEqthNBzgE/4iOdDrkq0vNwQu');
+    // HilltopAds 300x100 top banner
+    injectScript('hilltop-top',
+      '//pricklyassociation.com/bSXDVCs.d/GHlV0/Y/WDcE/JeYmh9/ukZoUAlHkoPrTAcExLOHDdgO5tN-TScYtwNLzvEr4RO/D-kU2tMPQP',
+      'no-referrer-when-downgrade');
+    // MyBid 300x250 bottom banner
+    const mybidEl = document.getElementById('mybid-bottom');
+    if (mybidEl && !mybidEl.hasChildNodes()) {
+      const ms = document.createElement('script');
+      ms.async = true;
+      ms.src = 'https://js.mbidadm.com/static/scripts.js';
+      ms.dataset.admpid = '446943';
+      mybidEl.appendChild(ms);
+    }
   }, [chIdx]);
 
   // ── Track chapter read in localStorage for admin analytics ──
@@ -1622,9 +1631,6 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
-      {/* ── Monetag In-Page Push placement — top of chapter ── */}
-      <div id="monetag-inpage-top" style={{ margin: '12px 0' }}></div>
-
       {/* ── HilltopAds 300x100 banner — top of chapter ── */}
       <div id="hilltop-top" style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden', minHeight: 100 }}></div>
 
@@ -1716,11 +1722,8 @@ function Reader({ data, setData, remoteLoaded }) {
         );
       })()}
 
-      {/* ── Monetag In-Page Push placement — before bottom nav ── */}
-      <div id="monetag-inpage-bottom" style={{ margin: '24px 0' }}></div>
-
-      {/* ── HilltopAds 300x250 banner — before bottom nav ── */}
-      <div id="hilltop-bottom" style={{ textAlign: 'center', margin: '24px 0', overflow: 'hidden', minHeight: 250 }}></div>
+      {/* ── MyBid 300x250 banner — before bottom nav ── */}
+      <div id="mybid-bottom" style={{ textAlign: 'center', margin: '24px 0', overflow: 'hidden', minHeight: 250 }}></div>
 
       {/* Bottom nav */}
       {navBar(false)}
