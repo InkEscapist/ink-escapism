@@ -67,10 +67,6 @@
 <!-- Favicon: Ink Drop Logo -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
-<!-- Monetag Vignette Banner -->
-<script>
-(function(){var s=document.createElement('script');s.dataset.zone='11232487';s.src='https://n6wxm.com/vignette.min.js';document.head.appendChild(s);})();
-</script>
 <meta name="monetag" content="45d7ae8db3afc70ff8ba34895d1417bd">
 <meta name="theme-color" content="#111111" />
 
@@ -1456,6 +1452,23 @@ function Reader({ data, setData, remoteLoaded }) {
     document.head.appendChild(s);
   }, []);
 
+  // ── HilltopAds banner injection ──
+  React.useEffect(() => {
+    function injectHilltop(containerId, src) {
+      const el = document.getElementById(containerId);
+      if (!el || el.hasChildNodes()) return;
+      const s = document.createElement('script');
+      s.async = true;
+      s.referrerPolicy = 'no-referrer-when-downgrade';
+      s.src = src;
+      el.appendChild(s);
+    }
+    injectHilltop('hilltop-top',
+      '//pricklyassociation.com/bJXOV.sAdiGblF0oYGWmcY/Seime9/uWZnU/ldktPhTJcqxMOZDYgk5tN/TBclteNXzTEq4wODDVk/2KMuQ-');
+    injectHilltop('hilltop-bottom',
+      '//pricklyassociation.com/b/XRVWs.dSGTl/0xYIW/c_/veumb9UuBZZUIlnkkPmTuczxoOCD/gF5LN/DWEqthNBzgE/4iOdDrkq0vNwQu');
+  }, [chIdx]);
+
   // ── Track chapter read in localStorage for admin analytics ──
   React.useEffect(() => {
     if (!book) return;
@@ -1612,6 +1625,9 @@ function Reader({ data, setData, remoteLoaded }) {
       {/* ── Monetag In-Page Push placement — top of chapter ── */}
       <div id="monetag-inpage-top" style={{ margin: '12px 0' }}></div>
 
+      {/* ── HilltopAds 300x100 banner — top of chapter ── */}
+      <div id="hilltop-top" style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden', minHeight: 100 }}></div>
+
       {/* Chapter content — split at midpoint for native banner injection */}
       {(() => {
         const content = chapter.content || '';
@@ -1702,6 +1718,9 @@ function Reader({ data, setData, remoteLoaded }) {
 
       {/* ── Monetag In-Page Push placement — before bottom nav ── */}
       <div id="monetag-inpage-bottom" style={{ margin: '24px 0' }}></div>
+
+      {/* ── HilltopAds 300x250 banner — before bottom nav ── */}
+      <div id="hilltop-bottom" style={{ textAlign: 'center', margin: '24px 0', overflow: 'hidden', minHeight: 250 }}></div>
 
       {/* Bottom nav */}
       {navBar(false)}
