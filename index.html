@@ -1441,32 +1441,17 @@ function Reader({ data, setData, remoteLoaded }) {
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
-  // ── Adsterra ad injection ──
+  // ── Monetag Multitag ad injection ──
   React.useEffect(() => {
-    function injectAd(containerId, key, width, height) {
-      const el = document.getElementById(containerId);
-      if (!el || el.hasChildNodes()) return;
-      const s1 = document.createElement('script');
-      s1.innerHTML = `var atOptions={'key':'${key}','format':'iframe','height':${height},'width':${width},'params':{}};`;
-      const s2 = document.createElement('script');
-      s2.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
-      el.appendChild(s1);
-      el.appendChild(s2);
-    }
-    function injectNative(containerId, src) {
-      const el = document.getElementById(containerId);
-      if (!el || el.hasChildNodes()) return;
-      const s = document.createElement('script');
-      s.async = true;
-      s.dataset.cfasync = 'false';
-      s.src = src;
-      el.parentNode.insertBefore(s, el);
-    }
-    injectAd('ad-top-banner', 'ef35c1eb4fcaa1c63817d8cc572faeee', 320, 50);
-    injectAd('ad-bottom-banner', '7eebd04377631c55e0fd84d6698abbb3', 300, 250);
-    injectNative('container-d39c8811d4dfebae44878e6f2c195386',
-      'https://pl30152693.effectivecpmnetwork.com/d39c8811d4dfebae44878e6f2c195386/invoke.js');
-  }, [chIdx]);
+    if (document.getElementById('monetag-multitag')) return;
+    const s = document.createElement('script');
+    s.id = 'monetag-multitag';
+    s.src = 'https://quge5.com/88/tag.min.js';
+    s.setAttribute('data-zone', '255724');
+    s.async = true;
+    s.dataset.cfasync = 'false';
+    document.head.appendChild(s);
+  }, []);
 
   // ── Track chapter read in localStorage for admin analytics ──
   React.useEffect(() => {
@@ -1621,9 +1606,6 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
-      {/* ── Adsterra 320x50 mobile banner — top of chapter ── */}
-      <div id="ad-top-banner" style={{ textAlign: 'center', margin: '12px 0', overflow: 'hidden', minHeight: 50 }}></div>
-
       {/* Chapter content — split at midpoint for native banner injection */}
       {(() => {
         const content = chapter.content || '';
@@ -1638,11 +1620,6 @@ function Reader({ data, setData, remoteLoaded }) {
             </h2>
             <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
               {firstHalf}
-            </div>
-
-            {/* ── Adsterra Native Banner — mid chapter ── */}
-            <div id="ad-native-banner" style={{ margin: '28px 0', overflow: 'hidden' }}>
-              <div id="container-d39c8811d4dfebae44878e6f2c195386"></div>
             </div>
 
             <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
@@ -1716,9 +1693,6 @@ function Reader({ data, setData, remoteLoaded }) {
           </div>
         );
       })()}
-
-      {/* ── Adsterra 300x250 banner — before bottom nav ── */}
-      <div id="ad-bottom-banner" style={{ textAlign: 'center', margin: '28px 0', overflow: 'hidden', minHeight: 250 }}></div>
 
       {/* Bottom nav */}
       {navBar(false)}
