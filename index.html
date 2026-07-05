@@ -2937,8 +2937,11 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                 <div>
                   <label className="admin-label">Number of Gates</label>
                   <input className="admin-input" type="number" min="1" max="10"
-                    value={bookForm.cpaGates}
-                    onChange={e => setBookForm(f => ({ ...f, cpaGates: parseInt(e.target.value) || 2 }))} />
+                    value={bookForm.cpaGates ?? 2}
+                    onChange={e => {
+                      const val = e.target.value === '' ? '' : Math.max(1, Math.min(10, parseInt(e.target.value) || 1));
+                      setBookForm(f => ({ ...f, cpaGates: val }));
+                    }} />
                 </div>
               </div>
 
@@ -3400,19 +3403,20 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         <button
                           onClick={() => {
-                            const updated = [...chapters];
-                            updated[i] = { ...updated[i], advanced: !updated[i].advanced };
+                            const updated = (book.chapters || []).map((ch, idx) =>
+                              idx === i ? { ...ch, advanced: !ch.advanced } : ch
+                            );
                             updateBook({ chapters: updated });
                           }}
-                          title={c.advanced ? "Mark as free chapter" : "Mark as advanced chapter"}
+                          title={c.advanced ? "Click to mark as free" : "Click to mark as advanced"}
                           style={{
                             fontSize: 10, padding: '4px 6px', borderRadius: 6, cursor: 'pointer',
-                            border: '1px solid ' + (c.advanced ? '#d97706' : 'var(--ink-border)'),
-                            background: c.advanced ? '#fef3c7' : 'none',
-                            color: c.advanced ? '#d97706' : 'var(--ink-muted)',
-                            fontWeight: 700,
+                            border: '1px solid ' + (c.advanced ? '#d97706' : '#22c55e'),
+                            background: c.advanced ? '#fef3c7' : '#f0fdf4',
+                            color: c.advanced ? '#d97706' : '#16a34a',
+                            fontWeight: 700, minWidth: 34, textAlign: 'center',
                           }}>
-                          ADV
+                          {c.advanced ? 'ADV' : 'FREE'}
                         </button>
                         <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 7px' }}
                           onClick={() => setPreviewIdx(i)} title="Preview chapter as reader">👁</button>
