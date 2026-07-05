@@ -67,6 +67,9 @@
 <!-- Favicon: Ink Drop Logo -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
+<!-- CPAlead Content Locker -->
+<script>window.CPAlead_PublisherUserId = 3353782;</script>
+<script src="https://cdnflair.com/js/interact-form.js" async defer></script>
 <meta name="theme-color" content="#111111" />
 
 <!-- GoatCounter Analytics (privacy-friendly, works on GitHub Pages) -->
@@ -1634,10 +1637,36 @@ function Reader({ data, setData, remoteLoaded }) {
             <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>
               You've reached the latest chapter! 🎉
             </p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 20 }}>
+            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 8 }}>
               More chapters are available — continue reading now.
             </p>
+            <p style={{ color: 'var(--ink-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6,
+              background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
+              border: '1px solid rgba(124,58,237,0.2)' }}>
+              💜 Advanced chapters are now free. Support the translator by completing a quick task below to unlock them, or read ahead on Patreon.
+            </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
+              {/* CPAlead free advanced chapters button */}
+              <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${lastCh + 1}`}
+                data-interact-trigger
+                data-tool-id="64924"
+                data-tool-slug="FPLs"
+                style={{
+                  flex: 1, minWidth: 200,
+                  padding: '14px 20px',
+                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                  color: '#fff',
+                  borderRadius: 10,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  display: 'block',
+                  boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                }}>
+                🔓 Read Chapter {nextStart} Free
+              </a>
               {showPatreon && (
                 <a href={book.patreon} target="_blank" style={{
                   flex: 1, minWidth: 200,
