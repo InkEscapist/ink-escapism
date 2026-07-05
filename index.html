@@ -1592,37 +1592,35 @@ function Reader({ data, setData, remoteLoaded }) {
                 marginBottom: 2,
               }}>
               {i + 1}. {c.title}
-              {c.advanced && <span style={{ marginLeft: 6, fontSize: 11, opacity: 0.7 }}>🔒</span>}
               {i === current && <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.7 }}>← reading</span>}
             </a>
           ))}
         </div>
       )}
 
-      {/* Chapter content — show locker gate if this is a gate chapter, otherwise full content */}
+      {/* Chapter content — show locker if advanced, otherwise full content */}
       {(() => {
         const advancedChapters = chapters.map((c, i) => c.advanced ? i : null).filter(i => i !== null);
-        const numGates = book.cpaGates || 2;
-        const gateIndices = new Set();
-        if (advancedChapters.length > 0 && numGates > 0) {
-          const step = Math.max(1, Math.floor(advancedChapters.length / numGates));
-          for (let g = 0; g < numGates; g++) {
-            const idx = advancedChapters[Math.min(g * step, advancedChapters.length - 1)];
-            if (idx !== undefined) gateIndices.add(idx);
-          }
-        }
-        const isGate = chapter.advanced && gateIndices.has(current);
-        const isAdvanced = chapter.advanced && !gateIndices.has(current);
+        const firstGate = advancedChapters.length > 0 ? advancedChapters[0] : null;
+        const isGate = chapter.advanced && current === firstGate;
+        const isAdvanced = chapter.advanced && current !== firstGate;
 
         if (isGate) {
           return (
             <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--ink-card)',
               borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
               <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
-              <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Advanced Chapter</p>
+              <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Advanced Chapters</p>
               <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-                Support the translator by completing a quick task to unlock the next chapters for free, or read ahead on Patreon.
+                Support the translator by completing a quick task to unlock all advanced chapters for free, or read ahead on Patreon.
               </p>
+              {book.readerMessage && (
+                <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 24, lineHeight: 1.6,
+                  background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
+                  border: '1px solid rgba(124,58,237,0.2)', fontStyle: 'italic' }}>
+                  {book.readerMessage}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
                   data-interact-trigger={true}
@@ -1660,9 +1658,22 @@ function Reader({ data, setData, remoteLoaded }) {
               <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
               <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Advanced Chapter</p>
               <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-                You've already completed a task — go back and complete it to unlock this chapter, or read on Patreon.
+                Complete a quick task to unlock this chapter for free, or read ahead on Patreon.
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
+                  data-interact-trigger={true}
+                  data-tool-id="64924"
+                  data-tool-slug="FPLs"
+                  style={{
+                    padding: '14px 24px',
+                    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
+                    textDecoration: 'none', cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                  }}>
+                  🔓 Unlock for Free
+                </a>
                 {book.patreon && (
                   <a href={book.patreon} target="_blank" style={{
                     padding: '14px 24px',
@@ -1715,6 +1726,13 @@ function Reader({ data, setData, remoteLoaded }) {
               border: '1px solid rgba(124,58,237,0.2)' }}>
               💜 Advanced chapters are now free. Support the translator by completing a quick task below to unlock them, or read ahead on Patreon.
             </p>
+            {book.readerMessage && (
+              <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 20, lineHeight: 1.6,
+                fontStyle: 'italic', padding: '10px 14px', borderRadius: 8,
+                background: 'var(--ink-card)', border: '1px solid var(--ink-border)' }}>
+                {book.readerMessage}
+              </p>
+            )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
               {/* CPAlead free advanced chapters button */}
               <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${lastCh + 1}`}
@@ -2639,6 +2657,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
       customBtnUrl: book.customBtnUrl || '',
       language: book.language || 'en',
       cpaGates: book.cpaGates || 2,
+      readerMessage: book.readerMessage || '',
       recommendations: book.recommendations ? JSON.parse(JSON.stringify(book.recommendations)) : [],
       frontTags: book.frontTags ? [...book.frontTags] : [],
     });
@@ -2926,23 +2945,18 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                 />
               </div>
 
-              {/* ── CPAlead Gates ── */}
+              {/* ── Reader Message ── */}
               <div style={{ marginBottom: 16, padding: 14, background: 'var(--ink-card)', borderRadius: 10, border: '1px solid var(--ink-border)' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  🔒 Advanced Chapter Gates
+                  💬 Message to Readers
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 10, lineHeight: 1.5 }}>
-                  How many CPAlead task gates to place across this book's advanced chapters. Gates are spaced evenly. Readers complete one task per gate to continue reading.
+                  Optional message shown on the advanced chapter gate screen. Use this to tell readers when the next update is coming.
                 </p>
-                <div>
-                  <label className="admin-label">Number of Gates</label>
-                  <input className="admin-input" type="number" min="1" max="10"
-                    value={bookForm.cpaGates ?? 2}
-                    onChange={e => {
-                      const val = e.target.value === '' ? '' : Math.max(1, Math.min(10, parseInt(e.target.value) || 1));
-                      setBookForm(f => ({ ...f, cpaGates: val }));
-                    }} />
-                </div>
+                <textarea className="admin-input" rows={3}
+                  placeholder="e.g. Next 5 chapters drop this Sunday. See you then!"
+                  value={bookForm.readerMessage}
+                  onChange={e => setBookForm(f => ({ ...f, readerMessage: e.target.value }))} />
               </div>
 
               {/* ── Custom Button ── */}
