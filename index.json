@@ -94,7 +94,10 @@
         }
       ],
       "showPatreonOnLast": true,
-      "chapterCount": 120
+      "customBtnLabel": "",
+      "customBtnUrl": "",
+      "cpaGates": 3,
+      "chapterCount": 134
     },
     {
       "id": "1776443629230",
@@ -118,7 +121,11 @@
         }
       ],
       "showPatreonOnLast": true,
-      "chapterCount": 105
+      "customBtnLabel": "",
+      "customBtnUrl": "",
+      "language": "en",
+      "cpaGates": 3,
+      "chapterCount": 119
     },
     {
       "id": "1777691358789",
@@ -228,7 +235,8 @@
       ],
       "customBtnLabel": "",
       "customBtnUrl": "",
-      "chapterCount": 44
+      "cpaGates": 3,
+      "chapterCount": 53
     }
   ],
   "tags": [
