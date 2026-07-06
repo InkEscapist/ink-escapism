@@ -1622,7 +1622,7 @@ function Reader({ data, setData, remoteLoaded }) {
               )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  onClick="call_locker(); return false;"
+                  onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
                   style={{
                     padding: '14px 24px',
                     background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
@@ -1659,7 +1659,7 @@ function Reader({ data, setData, remoteLoaded }) {
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  onClick="call_locker(); return false;"
+                  onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
                   style={{
                     padding: '14px 24px',
                     background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
@@ -1731,7 +1731,7 @@ function Reader({ data, setData, remoteLoaded }) {
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
               {/* CPAGrip free advanced chapters button */}
               <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${lastCh + 1}`}
-                onClick="call_locker(); return false;"
+                onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
                 style={{
                   flex: 1, minWidth: 200,
                   padding: '14px 20px',
