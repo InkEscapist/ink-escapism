@@ -67,9 +67,8 @@
 <!-- Favicon: Ink Drop Logo -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
-<!-- CPAlead Content Locker -->
-<script>window.CPAlead_PublisherUserId = 3353782;</script>
-<script src="https://cdnflair.com/js/interact-form.js" async defer></script>
+<!-- CPAGrip Content Locker -->
+<script type="text/javascript" src="https://passwordomain.com/script_include.php?id=1903720"></script>
 <meta name="theme-color" content="#111111" />
 
 <!-- GoatCounter Analytics (privacy-friendly, works on GitHub Pages) -->
@@ -1443,7 +1442,7 @@ function Reader({ data, setData, remoteLoaded }) {
 
   React.useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [id, chIdx]);
 
-  // Ad placements removed — focusing on CPAlead content locking
+  // Ad placements removed — using CPAGrip content locking
 
   // ── Track chapter read in localStorage for admin analytics ──
   React.useEffect(() => {
@@ -1623,9 +1622,7 @@ function Reader({ data, setData, remoteLoaded }) {
               )}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  data-interact-trigger={true}
-                  data-tool-id="64924"
-                  data-tool-slug="FPLs"
+                  onClick="call_locker(); return false;"
                   style={{
                     padding: '14px 24px',
                     background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
@@ -1662,9 +1659,7 @@ function Reader({ data, setData, remoteLoaded }) {
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  data-interact-trigger={true}
-                  data-tool-id="64924"
-                  data-tool-slug="FPLs"
+                  onClick="call_locker(); return false;"
                   style={{
                     padding: '14px 24px',
                     background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
@@ -1734,11 +1729,9 @@ function Reader({ data, setData, remoteLoaded }) {
               </p>
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
-              {/* CPAlead free advanced chapters button */}
+              {/* CPAGrip free advanced chapters button */}
               <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${lastCh + 1}`}
-                data-interact-trigger={true}
-                data-tool-id="64924"
-                data-tool-slug="FPLs"
+                onClick="call_locker(); return false;"
                 style={{
                   flex: 1, minWidth: 200,
                   padding: '14px 20px',
