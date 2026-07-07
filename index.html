@@ -447,23 +447,37 @@ function AdBanner({ adKey, width, height }) {
 // in a new tab, then shows a short "thank you" loading message before
 // revealing the actual chapter content. Resets every time the reader
 // navigates to a (new) advanced chapter, per-chapter, every visit.
-function AdvancedChapterGate({ current, smartLink, readerMessage, patreon, renderContent }) {
-  const [stage, setStage] = React.useState('gate'); // 'gate' | 'loading' | 'done'
+// Advanced chapters redirect automatically — no click, no choice. Landing on
+// an advanced chapter sends the reader straight to the Adsterra smart link.
+// When they come back (browser back / re-visiting the site), we detect that
+// via a short-lived flag and show a "thank you" message before revealing
+// the chapter. Every fresh visit to an advanced chapter repeats this.
+function AdvancedChapterGate({ current, bookId, smartLink, renderContent }) {
+  const [stage, setStage] = React.useState('checking'); // 'checking' | 'loading' | 'done'
+  const storageKey = 'ink-adv-return-' + bookId + '-' + current;
 
   React.useEffect(() => {
-    setStage('gate');
-  }, [current]);
+    setStage('checking');
+    let pending = null;
+    try { pending = JSON.parse(sessionStorage.getItem(storageKey) || 'null'); } catch {}
+
+    const RETURN_WINDOW_MS = 30 * 60 * 1000; // treat as "returning" for 30 min
+
+    if (pending && (Date.now() - pending.t) < RETURN_WINDOW_MS) {
+      sessionStorage.removeItem(storageKey);
+      setStage('loading');
+    } else {
+      try { sessionStorage.setItem(storageKey, JSON.stringify({ t: Date.now() })); } catch {}
+      window.location.href = smartLink;
+      // Page is navigating away — no further render needed until they return.
+    }
+  }, [current, bookId, storageKey, smartLink]);
 
   React.useEffect(() => {
     if (stage !== 'loading') return;
     const t = setTimeout(() => setStage('done'), 10000);
     return () => clearTimeout(t);
   }, [stage]);
-
-  const handleSupportClick = () => {
-    window.open(smartLink, '_blank', 'noopener');
-    setStage('loading');
-  };
 
   if (stage === 'done') return renderContent();
 
@@ -479,43 +493,10 @@ function AdvancedChapterGate({ current, smartLink, readerMessage, patreon, rende
     );
   }
 
+  // 'checking' — about to navigate away, show a brief neutral placeholder
   return (
-    <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--ink-card)',
-      borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
-      <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
-      <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Next Week's Chapter — Available Now</p>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-        You're about to read next week's chapter in advance. Click below to support the translator and continue.
-      </p>
-      {readerMessage && (
-        <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 24, lineHeight: 1.6,
-          background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
-          border: '1px solid rgba(124,58,237,0.2)', fontStyle: 'italic' }}>
-          {readerMessage}
-        </p>
-      )}
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button onClick={handleSupportClick} style={{
-          padding: '14px 24px',
-          background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-          color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-          border: 'none', cursor: 'pointer',
-          boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-        }}>
-          💜 Support & Continue Reading
-        </button>
-        {patreon && (
-          <a href={patreon} target="_blank" style={{
-            padding: '14px 24px',
-            background: 'linear-gradient(135deg, #f96854, #ff424d)',
-            color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-            textDecoration: 'none',
-            boxShadow: '0 4px 14px rgba(249,104,84,0.35)',
-          }}>
-            Read on Patreon
-          </a>
-        )}
-      </div>
+    <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--ink-muted)', fontSize: 14 }}>
+      Loading…
     </div>
   );
 }
@@ -1731,9 +1712,8 @@ function Reader({ data, setData, remoteLoaded }) {
             <AdvancedChapterGate
               key={current}
               current={current}
+              bookId={book.id}
               smartLink={ADSTERRA_SMART_LINK}
-              readerMessage={book.readerMessage}
-              patreon={book.patreon}
               renderContent={chapterBody}
             />
           );
