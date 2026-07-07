@@ -471,15 +471,20 @@ function AdvancedChapterGate({ current, bookId, smartLink, renderContent }) {
       window.location.href = smartLink;
       // Safety net: if a browser/ad-blocker/shield silently blocks the
       // redirect, don't leave the reader stuck forever — proceed anyway
-      // after a few seconds.
-      const fallback = setTimeout(() => setStage('loading'), 4000);
+      // after a few seconds. Importantly, clear the flag we just set so
+      // the NEXT visit to this chapter still attempts a real redirect
+      // instead of being mistaken for a "return."
+      const fallback = setTimeout(() => {
+        try { sessionStorage.removeItem(storageKey); } catch {}
+        setStage('loading');
+      }, 4000);
       return () => clearTimeout(fallback);
     }
   }, [current, bookId, storageKey, smartLink]);
 
   React.useEffect(() => {
     if (stage !== 'loading') return;
-    const t = setTimeout(() => setStage('done'), 10000);
+    const t = setTimeout(() => setStage('done'), 5000);
     return () => clearTimeout(t);
   }, [stage]);
 
