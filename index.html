@@ -404,7 +404,20 @@ async function ghLoadBook(id) {
 }
 
 /* ─── Adsterra Monetization ───────────────────────────────── */
-const ADSTERRA_SMART_LINK = 'https://www.effectivecpmnetwork.com/g61mteg8?key=be2ecaffc8100dc8ed6d6dc84d94117e';
+const ADSTERRA_POPUNDER_SRC = 'https://pl30246434.effectivecpmnetwork.com/75/a1/9a/75a19a8a91d7a65d76b9f7c062616689.js';
+
+// Loads the Adsterra pop-under script only once per page session (not once
+// per chapter), so navigating between several advanced chapters doesn't
+// repeatedly re-inject/re-trigger the ad script.
+let _popunderLoaded = false;
+function loadPopunderOnce() {
+  if (_popunderLoaded) return;
+  _popunderLoaded = true;
+  const s = document.createElement('script');
+  s.src = ADSTERRA_POPUNDER_SRC;
+  s.async = true;
+  document.body.appendChild(s);
+}
 
 // Renders an Adsterra "highperformanceformat" banner safely inside an isolated
 // iframe (these ad tags use document.write, which would otherwise wipe out
@@ -443,69 +456,30 @@ function AdBanner({ adKey, width, height }) {
   );
 }
 
-// Gate shown for advanced chapters. On click, opens the Adsterra smart link
-// in a new tab, then shows a short "thank you" loading message before
-// revealing the actual chapter content. Resets every time the reader
-// navigates to a (new) advanced chapter, per-chapter, every visit.
-// Advanced chapters redirect automatically — no click, no choice. Landing on
-// an advanced chapter sends the reader straight to the Adsterra smart link.
-// When they come back (browser back / re-visiting the site), we detect that
-// via a short-lived flag and show a "thank you" message before revealing
-// the chapter. Every fresh visit to an advanced chapter repeats this.
-function AdvancedChapterGate({ current, bookId, smartLink, renderContent }) {
-  const [stage, setStage] = React.useState('checking'); // 'checking' | 'loading' | 'done'
-  const storageKey = 'ink-adv-return-' + bookId + '-' + current;
+// Gate shown for advanced chapters. On landing, triggers the Adsterra
+// pop-under (loaded once per page session), shows a short "thank you"
+// loading message for 5 seconds, then reveals the actual chapter content.
+// The reader never leaves the page — the pop-under opens behind the current
+// tab, so there's no redirect/return-detection needed anymore.
+function AdvancedChapterGate({ current, bookId, renderContent }) {
+  const [stage, setStage] = React.useState('loading'); // 'loading' | 'done'
 
   React.useEffect(() => {
-    setStage('checking');
-    let pending = null;
-    try { pending = JSON.parse(sessionStorage.getItem(storageKey) || 'null'); } catch {}
-
-    const RETURN_WINDOW_MS = 30 * 60 * 1000; // treat as "returning" for 30 min
-
-    if (pending && (Date.now() - pending.t) < RETURN_WINDOW_MS) {
-      sessionStorage.removeItem(storageKey);
-      setStage('loading');
-    } else {
-      try { sessionStorage.setItem(storageKey, JSON.stringify({ t: Date.now() })); } catch {}
-      window.location.href = smartLink;
-      // Safety net: if a browser/ad-blocker/shield silently blocks the
-      // redirect, don't leave the reader stuck forever — proceed anyway
-      // after a few seconds. Importantly, clear the flag we just set so
-      // the NEXT visit to this chapter still attempts a real redirect
-      // instead of being mistaken for a "return."
-      const fallback = setTimeout(() => {
-        try { sessionStorage.removeItem(storageKey); } catch {}
-        setStage('loading');
-      }, 4000);
-      return () => clearTimeout(fallback);
-    }
-  }, [current, bookId, storageKey, smartLink]);
-
-  React.useEffect(() => {
-    if (stage !== 'loading') return;
+    setStage('loading');
+    loadPopunderOnce();
     const t = setTimeout(() => setStage('done'), 5000);
     return () => clearTimeout(t);
-  }, [stage]);
+  }, [current, bookId]);
 
   if (stage === 'done') return renderContent();
 
-  if (stage === 'loading') {
-    return (
-      <div style={{ textAlign: 'center', padding: '64px 24px', background: 'var(--ink-card)',
-        borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
-        <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
-        <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink-text)', lineHeight: 1.6 }}>
-          Thank you for supporting the translator, your advanced chapter is loading...
-        </p>
-      </div>
-    );
-  }
-
-  // 'checking' — about to navigate away, show a brief neutral placeholder
   return (
-    <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--ink-muted)', fontSize: 14 }}>
-      Loading…
+    <div style={{ textAlign: 'center', padding: '64px 24px', background: 'var(--ink-card)',
+      borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
+      <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
+      <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink-text)', lineHeight: 1.6 }}>
+        Thank you for supporting the translator, your advanced chapter is loading...
+      </p>
     </div>
   );
 }
@@ -1722,7 +1696,6 @@ function Reader({ data, setData, remoteLoaded }) {
               key={current}
               current={current}
               bookId={book.id}
-              smartLink={ADSTERRA_SMART_LINK}
               renderContent={chapterBody}
             />
           );
