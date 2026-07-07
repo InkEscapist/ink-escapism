@@ -67,8 +67,6 @@
 <!-- Favicon: Ink Drop Logo -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111111'/%3E%3Cpath d='M32 8 C32 8 18 26 18 36 C18 44.8 24.3 51 32 51 C39.7 51 46 44.8 46 36 C46 26 32 8 32 8 Z' fill='%23f0ece4'/%3E%3Cellipse cx='27' cy='34' rx='4' ry='6' fill='%23111111' opacity='0.25'/%3E%3C/svg%3E" />
-<!-- CPAGrip Content Locker -->
-<script type="text/javascript" src="https://passwordomain.com/script_include.php?id=1903720"></script>
 <meta name="theme-color" content="#111111" />
 
 <!-- GoatCounter Analytics (privacy-friendly, works on GitHub Pages) -->
@@ -403,6 +401,123 @@ async function ghLoadBook(id) {
     _bookCache[id] = book;
     return book;
   } catch { return null; }
+}
+
+/* ─── Adsterra Monetization ───────────────────────────────── */
+const ADSTERRA_SMART_LINK = 'https://www.effectivecpmnetwork.com/g61mteg8?key=be2ecaffc8100dc8ed6d6dc84d94117e';
+
+// Renders an Adsterra "highperformanceformat" banner safely inside an isolated
+// iframe (these ad tags use document.write, which would otherwise wipe out
+// the React app if injected directly into the page after initial load).
+function AdBanner({ adKey, width, height }) {
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.innerHTML = '';
+
+    const iframe = document.createElement('iframe');
+    iframe.style.border = 'none';
+    iframe.style.width = width + 'px';
+    iframe.style.height = height + 'px';
+    iframe.style.maxWidth = '100%';
+    iframe.scrolling = 'no';
+    container.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(
+      '<!DOCTYPE html><html><head><style>body{margin:0;padding:0;overflow:hidden;}</style></head><body>' +
+      '<script>atOptions = { "key": "' + adKey + '", "format": "iframe", "height": ' + height + ', "width": ' + width + ', "params": {} };<\/script>' +
+      '<script src="https://www.highperformanceformat.com/' + adKey + '/invoke.js"><\/script>' +
+      '</body></html>'
+    );
+    doc.close();
+  }, [adKey, width, height]);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0' }}>
+      <div ref={containerRef} style={{ width, height, maxWidth: '100%' }} />
+    </div>
+  );
+}
+
+// Gate shown for advanced chapters. On click, opens the Adsterra smart link
+// in a new tab, then shows a short "thank you" loading message before
+// revealing the actual chapter content. Resets every time the reader
+// navigates to a (new) advanced chapter, per-chapter, every visit.
+function AdvancedChapterGate({ current, smartLink, readerMessage, patreon, renderContent }) {
+  const [stage, setStage] = React.useState('gate'); // 'gate' | 'loading' | 'done'
+
+  React.useEffect(() => {
+    setStage('gate');
+  }, [current]);
+
+  React.useEffect(() => {
+    if (stage !== 'loading') return;
+    const t = setTimeout(() => setStage('done'), 10000);
+    return () => clearTimeout(t);
+  }, [stage]);
+
+  const handleSupportClick = () => {
+    window.open(smartLink, '_blank', 'noopener');
+    setStage('loading');
+  };
+
+  if (stage === 'done') return renderContent();
+
+  if (stage === 'loading') {
+    return (
+      <div style={{ textAlign: 'center', padding: '64px 24px', background: 'var(--ink-card)',
+        borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
+        <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
+        <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink-text)', lineHeight: 1.6 }}>
+          Thank you for supporting the translator, your advanced chapter is loading...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--ink-card)',
+      borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
+      <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
+      <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Next Week's Chapter — Available Now</p>
+      <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+        You're about to read next week's chapter in advance. Click below to support the translator and continue.
+      </p>
+      {readerMessage && (
+        <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 24, lineHeight: 1.6,
+          background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
+          border: '1px solid rgba(124,58,237,0.2)', fontStyle: 'italic' }}>
+          {readerMessage}
+        </p>
+      )}
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button onClick={handleSupportClick} style={{
+          padding: '14px 24px',
+          background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+          color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
+          border: 'none', cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+        }}>
+          💜 Support & Continue Reading
+        </button>
+        {patreon && (
+          <a href={patreon} target="_blank" style={{
+            padding: '14px 24px',
+            background: 'linear-gradient(135deg, #f96854, #ff424d)',
+            color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
+            textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(249,104,84,0.35)',
+          }}>
+            Read on Patreon
+          </a>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // Reconstruct full data object by merging index + cached book chapters
@@ -1597,96 +1712,11 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
-      {/* Chapter content — show locker if advanced, otherwise full content */}
+      {/* Chapter content — Adsterra smart-link gate if advanced, otherwise full content */}
       {(() => {
-        const advancedChapters = chapters.map((c, i) => c.advanced ? i : null).filter(i => i !== null);
-        const firstGate = advancedChapters.length > 0 ? advancedChapters[0] : null;
-        const isGate = chapter.advanced && current === firstGate;
-        const isAdvanced = chapter.advanced && current !== firstGate;
-
-        if (isGate) {
-          return (
-            <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--ink-card)',
-              borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
-              <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
-              <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Advanced Chapters</p>
-              <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-                Support the translator by completing a quick task to unlock all advanced chapters for free, or read ahead on Patreon.
-              </p>
-              {book.readerMessage && (
-                <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 24, lineHeight: 1.6,
-                  background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
-                  border: '1px solid rgba(124,58,237,0.2)', fontStyle: 'italic' }}>
-                  {book.readerMessage}
-                </p>
-              )}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
-                  style={{
-                    padding: '14px 24px',
-                    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-                    textDecoration: 'none', cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-                  }}>
-                  🔓 Unlock for Free
-                </a>
-                {book.patreon && (
-                  <a href={book.patreon} target="_blank" style={{
-                    padding: '14px 24px',
-                    background: 'linear-gradient(135deg, #f96854, #ff424d)',
-                    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 14px rgba(249,104,84,0.35)',
-                  }}>
-                    Read on Patreon
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        }
-
-        if (isAdvanced) {
-          return (
-            <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--ink-card)',
-              borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
-              <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
-              <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>Advanced Chapter</p>
-              <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-                Complete a quick task to unlock this chapter for free, or read ahead on Patreon.
-              </p>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${current}`}
-                  onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
-                  style={{
-                    padding: '14px 24px',
-                    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-                    textDecoration: 'none', cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-                  }}>
-                  🔓 Unlock for Free
-                </a>
-                {book.patreon && (
-                  <a href={book.patreon} target="_blank" style={{
-                    padding: '14px 24px',
-                    background: 'linear-gradient(135deg, #f96854, #ff424d)',
-                    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 15,
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 14px rgba(249,104,84,0.35)',
-                  }}>
-                    Read on Patreon
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        }
-
-        return (
+        const chapterBody = () => (
           <div className="no-select" onContextMenu={e => e.preventDefault()}>
+            <AdBanner adKey="ef35c1eb4fcaa1c63817d8cc572faeee" width={320} height={50} />
             <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
               Chapter {current + 1}: {chapter.title}
             </h2>
@@ -1695,7 +1725,25 @@ function Reader({ data, setData, remoteLoaded }) {
             </div>
           </div>
         );
+
+        if (chapter.advanced) {
+          return (
+            <AdvancedChapterGate
+              key={current}
+              current={current}
+              smartLink={ADSTERRA_SMART_LINK}
+              readerMessage={book.readerMessage}
+              patreon={book.patreon}
+              renderContent={chapterBody}
+            />
+          );
+        }
+
+        return chapterBody();
       })()}
+
+      {/* Banner ad — always shown just before the Prev/Next navigation */}
+      <AdBanner adKey="7eebd04377631c55e0fd84d6698abbb3" width={300} height={250} />
 
       {/* Read ahead CTA on last chapter — Patreon and/or custom button */}
       {isLast && (book.showPatreonOnLast || (book.customBtnLabel && book.customBtnUrl)) && (() => {
@@ -1719,7 +1767,7 @@ function Reader({ data, setData, remoteLoaded }) {
             <p style={{ color: 'var(--ink-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6,
               background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
               border: '1px solid rgba(124,58,237,0.2)' }}>
-              💜 Advanced chapters are now free. Support the translator by completing a quick task below to unlock them, or read ahead on Patreon.
+              💜 Next week's chapters are available now. Click below to support the translator and continue, or read ahead on Patreon.
             </p>
             {book.readerMessage && (
               <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 20, lineHeight: 1.6,
@@ -1729,9 +1777,8 @@ function Reader({ data, setData, remoteLoaded }) {
               </p>
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
-              {/* CPAGrip free advanced chapters button */}
-              <a href={`https://inkescapist.github.io/ink-escapism/#/read/${book.id}/${lastCh + 1}`}
-                onClick={(e) => { e.preventDefault(); if (typeof call_locker === "function") { call_locker(); } }}
+              {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate */}
+              <a href={`#/read/${book.id}/${lastCh + 1}`}
                 style={{
                   flex: 1, minWidth: 200,
                   padding: '14px 20px',
@@ -1746,7 +1793,7 @@ function Reader({ data, setData, remoteLoaded }) {
                   display: 'block',
                   boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
                 }}>
-                🔓 Read Chapter {nextStart} Free
+                💜 Read Chapter {nextStart} Now
               </a>
               {showPatreon && (
                 <a href={book.patreon} target="_blank" style={{
