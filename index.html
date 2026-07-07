@@ -469,7 +469,11 @@ function AdvancedChapterGate({ current, bookId, smartLink, renderContent }) {
     } else {
       try { sessionStorage.setItem(storageKey, JSON.stringify({ t: Date.now() })); } catch {}
       window.location.href = smartLink;
-      // Page is navigating away — no further render needed until they return.
+      // Safety net: if a browser/ad-blocker/shield silently blocks the
+      // redirect, don't leave the reader stuck forever — proceed anyway
+      // after a few seconds.
+      const fallback = setTimeout(() => setStage('loading'), 4000);
+      return () => clearTimeout(fallback);
     }
   }, [current, bookId, storageKey, smartLink]);
 
