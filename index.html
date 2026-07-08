@@ -404,7 +404,7 @@ async function ghLoadBook(id) {
 }
 
 /* ─── Adsterra Monetization ───────────────────────────────── */
-const ADSTERRA_POPUNDER_SRC = 'https://pl30246434.effectivecpmnetwork.com/75/a1/9a/75a19a8a91d7a65d76b9f7c062616689.js';
+const ADSTERRA_POPUNDER_SRC = 'https://deeprootedpressure.com/75/a1/9a/75a19a8a91d7a65d76b9f7c062616689.js';
 
 // Loads the Adsterra pop-under script only once per page session (not once
 // per chapter), so navigating between several advanced chapters doesn't
@@ -419,7 +419,7 @@ function loadPopunderOnce() {
   document.body.appendChild(s);
 }
 
-// Renders an Adsterra "highperformanceformat" banner safely inside an isolated
+// Renders an Adsterra banner ad safely inside an isolated
 // iframe (these ad tags use document.write, which would otherwise wipe out
 // the React app if injected directly into the page after initial load).
 function AdBanner({ adKey, width, height }) {
@@ -443,7 +443,7 @@ function AdBanner({ adKey, width, height }) {
     doc.write(
       '<!DOCTYPE html><html><head><style>body{margin:0;padding:0;overflow:hidden;}</style></head><body>' +
       '<script>atOptions = { "key": "' + adKey + '", "format": "iframe", "height": ' + height + ', "width": ' + width + ', "params": {} };<\/script>' +
-      '<script src="https://www.highperformanceformat.com/' + adKey + '/invoke.js"><\/script>' +
+      '<script src="https://deeprootedpressure.com/' + adKey + '/invoke.js"><\/script>' +
       '</body></html>'
     );
     doc.close();
@@ -1271,6 +1271,7 @@ function BookPage({ data, setData, remoteLoaded }) {
               const realIdx = newestFirst ? (chapters.length - 1 - displayIdx) : displayIdx;
               return (
                 <a key={realIdx} href={`#/read/${book.id}/${realIdx}`}
+                  onClick={() => { if (c.advanced) loadPopunderOnce(); }}
                   style={{ textDecoration: 'none', color: 'var(--ink-text)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--ink-border)', fontSize: 14, background: 'var(--ink-card)' }}>
                   {realIdx + 1}. {c.title}
                 </a>
@@ -1589,6 +1590,7 @@ function Reader({ data, setData, remoteLoaded }) {
     }}>
       {/* Prev */}
       <a href={isFirst ? `#/book/${book.id}` : `#/read/${book.id}/${current - 1}`}
+        onClick={() => { if (!isFirst && chapters[current - 1]?.advanced) loadPopunderOnce(); }}
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '8px 14px', borderRadius: 8,
@@ -1623,6 +1625,7 @@ function Reader({ data, setData, remoteLoaded }) {
         }}>End ✓</span>
       ) : (
         <a href={`#/read/${book.id}/${current + 1}`}
+          onClick={() => { if (chapters[current + 1]?.advanced) loadPopunderOnce(); }}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 8,
@@ -1660,7 +1663,7 @@ function Reader({ data, setData, remoteLoaded }) {
           {chapters.map((c, i) => (
             <a key={i}
               href={`#/read/${book.id}/${i}`}
-              onClick={() => setShowIndex(false)}
+              onClick={() => { setShowIndex(false); if (c.advanced) loadPopunderOnce(); }}
               style={{
                 display: 'block', padding: '7px 10px', borderRadius: 8,
                 textDecoration: 'none', fontSize: 14,
@@ -1741,6 +1744,7 @@ function Reader({ data, setData, remoteLoaded }) {
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
               {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate */}
               <a href={`#/read/${book.id}/${lastCh + 1}`}
+                onClick={() => loadPopunderOnce()}
                 style={{
                   flex: 1, minWidth: 200,
                   padding: '14px 20px',
