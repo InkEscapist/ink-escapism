@@ -474,58 +474,6 @@ function AdBanner({ adKey, width, height }) {
   );
 }
 
-// Adsterra Native Banner — shown as a sticky bar at the top of every page.
-// Unlike the display banners above, this ad type populates its own
-// container div via normal DOM insertion (not document.write), so it's
-// safe to load directly on the page, no iframe needed — the script
-// specifically looks for the container id below in the live document.
-//
-// Unlike the pop-under (which should only ever fire once per session), this
-// needs to reload FRESH on every chapter/page — otherwise, since this is a
-// single-page app and the bar never actually unmounts between chapters,
-// closing it once would hide it for the rest of the visit. Re-inserting the
-// script tag on every new page mimics what happens naturally on a normal
-// multi-page site, where the ad reloads on every pageview.
-const NATIVE_BANNER_CONTAINER_ID = 'container-d39c8811d4dfebae44878e6f2c195386';
-const NATIVE_BANNER_SRC = 'https://deeprootedpressure.com/d39c8811d4dfebae44878e6f2c195386/invoke.js';
-
-function loadNativeBanner() {
-  const s = document.createElement('script');
-  s.async = true;
-  s.setAttribute('data-cfasync', 'false');
-  s.src = NATIVE_BANNER_SRC;
-  document.body.appendChild(s);
-}
-
-// key={route} is passed by the caller so React fully remounts this
-// component (resetting "closed" back to false, and re-running the effect
-// below) every time the reader moves to a new chapter or page.
-function NativeBannerBar() {
-  const [closed, setClosed] = React.useState(false);
-
-  React.useEffect(() => { loadNativeBanner(); }, []);
-
-  if (closed) return null;
-
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 500,
-      background: 'var(--ink-bg)', borderBottom: '1px solid var(--ink-border)',
-      padding: '4px 34px 4px 8px', minHeight: 8,
-    }}>
-      <button onClick={() => setClosed(true)} aria-label="Close ad"
-        style={{
-          position: 'absolute', top: 4, right: 6,
-          width: 22, height: 22, borderRadius: '50%',
-          border: '1px solid var(--ink-border)', background: 'var(--ink-card)',
-          color: 'var(--ink-muted)', fontSize: 13, lineHeight: '20px',
-          cursor: 'pointer', padding: 0, zIndex: 501,
-        }}>✕</button>
-      <div id={NATIVE_BANNER_CONTAINER_ID} />
-    </div>
-  );
-}
-
 // Gate shown for advanced chapters. On landing, triggers the Adsterra
 // pop-under (loaded once per page session), shows a short "thank you"
 // loading message for 5 seconds, then reveals the actual chapter content.
@@ -1719,9 +1667,6 @@ function Reader({ data, setData, remoteLoaded }) {
 
       {/* Top nav */}
       {navBar(true)}
-
-      {/* Native banner — reading pages only, chapter 10 onward */}
-      {current >= 9 && <NativeBannerBar key={`${book.id}-${current}`} />}
 
       {/* Chapter index panel */}
       {showIndex && (
