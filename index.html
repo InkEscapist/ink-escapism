@@ -419,6 +419,24 @@ function loadPopunderOnce() {
   document.body.appendChild(s);
 }
 
+// Once the Adsterra pop-under script has loaded, it attaches its OWN click
+// listener to the whole page to catch the next click and open the ad — and
+// on a hash-based single-page app, that can end up swallowing the click
+// before our own chapter-navigation code gets to run, leaving the reader
+// stuck on the old chapter. To prevent that, we register this listener at
+// page load — BEFORE the Adsterra script ever gets a chance to load —  so
+// ours always runs first on every click and always finishes the actual
+// chapter navigation, no matter what the ad script does afterward.
+document.addEventListener('click', function (e) {
+  const link = e.target.closest && e.target.closest('a[data-chapter-nav]');
+  if (!link) return;
+  const href = link.getAttribute('href');
+  if (!href || !href.startsWith('#')) return;
+  e.preventDefault();
+  if (link.dataset.advanced === '1') loadPopunderOnce();
+  if (window.location.hash !== href) window.location.hash = href;
+}, true); // capture phase — runs before any later-attached listeners, including Adsterra's
+
 // Renders an Adsterra banner ad safely inside an isolated
 // iframe (these ad tags use document.write, which would otherwise wipe out
 // the React app if injected directly into the page after initial load).
@@ -452,6 +470,53 @@ function AdBanner({ adKey, width, height }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0' }}>
       <div ref={containerRef} style={{ width, height, maxWidth: '100%' }} />
+    </div>
+  );
+}
+
+// Adsterra Native Banner — shown as a thin sticky bar at the top of every
+// page (one ad unit, 1:1 layout). Unlike the display banners above, this ad
+// type populates its own container div via normal DOM insertion (not
+// document.write), so it's safe to load directly on the page, no iframe
+// needed — the script specifically looks for the container id below in the
+// live document. Loaded once per page load (not tied to any single ad
+// placement), and has a real, working close button.
+const NATIVE_BANNER_CONTAINER_ID = 'container-d39c8811d4dfebae44878e6f2c195386';
+const NATIVE_BANNER_SRC = 'https://deeprootedpressure.com/d39c8811d4dfebae44878e6f2c195386/invoke.js';
+
+let _nativeBannerLoaded = false;
+function loadNativeBannerOnce() {
+  if (_nativeBannerLoaded) return;
+  _nativeBannerLoaded = true;
+  const s = document.createElement('script');
+  s.async = true;
+  s.setAttribute('data-cfasync', 'false');
+  s.src = NATIVE_BANNER_SRC;
+  document.body.appendChild(s);
+}
+
+function NativeBannerBar() {
+  const [closed, setClosed] = React.useState(false);
+
+  React.useEffect(() => { loadNativeBannerOnce(); }, []);
+
+  if (closed) return null;
+
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 500,
+      background: 'var(--ink-bg)', borderBottom: '1px solid var(--ink-border)',
+      padding: '4px 34px 4px 8px', minHeight: 8,
+    }}>
+      <button onClick={() => setClosed(true)} aria-label="Close ad"
+        style={{
+          position: 'absolute', top: 4, right: 6,
+          width: 22, height: 22, borderRadius: '50%',
+          border: '1px solid var(--ink-border)', background: 'var(--ink-card)',
+          color: 'var(--ink-muted)', fontSize: 13, lineHeight: '20px',
+          cursor: 'pointer', padding: 0, zIndex: 501,
+        }}>✕</button>
+      <div id={NATIVE_BANNER_CONTAINER_ID} />
     </div>
   );
 }
@@ -1271,7 +1336,7 @@ function BookPage({ data, setData, remoteLoaded }) {
               const realIdx = newestFirst ? (chapters.length - 1 - displayIdx) : displayIdx;
               return (
                 <a key={realIdx} href={`#/read/${book.id}/${realIdx}`}
-                  onClick={() => { if (c.advanced) loadPopunderOnce(); }}
+                  data-chapter-nav data-advanced={c.advanced ? '1' : undefined}
                   style={{ textDecoration: 'none', color: 'var(--ink-text)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--ink-border)', fontSize: 14, background: 'var(--ink-card)' }}>
                   {realIdx + 1}. {c.title}
                 </a>
@@ -1590,7 +1655,7 @@ function Reader({ data, setData, remoteLoaded }) {
     }}>
       {/* Prev */}
       <a href={isFirst ? `#/book/${book.id}` : `#/read/${book.id}/${current - 1}`}
-        onClick={() => { if (!isFirst && chapters[current - 1]?.advanced) loadPopunderOnce(); }}
+        data-chapter-nav data-advanced={(!isFirst && chapters[current - 1]?.advanced) ? '1' : undefined}
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '8px 14px', borderRadius: 8,
@@ -1625,7 +1690,7 @@ function Reader({ data, setData, remoteLoaded }) {
         }}>End ✓</span>
       ) : (
         <a href={`#/read/${book.id}/${current + 1}`}
-          onClick={() => { if (chapters[current + 1]?.advanced) loadPopunderOnce(); }}
+          data-chapter-nav data-advanced={chapters[current + 1]?.advanced ? '1' : undefined}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 8,
@@ -1663,7 +1728,8 @@ function Reader({ data, setData, remoteLoaded }) {
           {chapters.map((c, i) => (
             <a key={i}
               href={`#/read/${book.id}/${i}`}
-              onClick={() => { setShowIndex(false); if (c.advanced) loadPopunderOnce(); }}
+              data-chapter-nav data-advanced={c.advanced ? '1' : undefined}
+              onClick={() => setShowIndex(false)}
               style={{
                 display: 'block', padding: '7px 10px', borderRadius: 8,
                 textDecoration: 'none', fontSize: 14,
@@ -1744,7 +1810,7 @@ function Reader({ data, setData, remoteLoaded }) {
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
               {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate */}
               <a href={`#/read/${book.id}/${lastCh + 1}`}
-                onClick={() => loadPopunderOnce()}
+                data-chapter-nav data-advanced="1"
                 style={{
                   flex: 1, minWidth: 200,
                   padding: '14px 20px',
@@ -3959,6 +4025,7 @@ function App() {
 
   return (
     <div className={dark ? 'dark-mode' : ''} style={{ minHeight: '100vh', background: 'var(--ink-bg)', color: 'var(--ink-text)' }}>
+      <NativeBannerBar />
       <Header dark={dark} setDark={setDark} />
       {syncMsg ? (
         <div style={{
