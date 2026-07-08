@@ -1720,6 +1720,9 @@ function Reader({ data, setData, remoteLoaded }) {
       {/* Top nav */}
       {navBar(true)}
 
+      {/* Native banner — reading pages only, chapter 10 onward */}
+      {current >= 9 && <NativeBannerBar key={`${book.id}-${current}`} />}
+
       {/* Chapter index panel */}
       {showIndex && (
         <div style={{
@@ -4030,7 +4033,6 @@ function App() {
 
   return (
     <div className={dark ? 'dark-mode' : ''} style={{ minHeight: '100vh', background: 'var(--ink-bg)', color: 'var(--ink-text)' }}>
-      <NativeBannerBar key={route} />
       <Header dark={dark} setDark={setDark} />
       {syncMsg ? (
         <div style={{
