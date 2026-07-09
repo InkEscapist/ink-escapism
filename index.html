@@ -2650,6 +2650,10 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
   const [bookForm, setBookForm]               = React.useState({});
   // Chapter sort order: false = asc (Ch.1 first), true = desc (latest first)
   const [sortDesc, setSortDesc]               = React.useState(false);
+  // Multi-select mode for bulk move/delete of chapters
+  const [selectMode, setSelectMode]           = React.useState(false);
+  const [selectedChapters, setSelectedChapters] = React.useState(new Set());
+  const [moveToPos, setMoveToPos]             = React.useState('');
   const bookCoverInputRef                     = React.useRef();
   // Bulk docx import
   const [docxImporting, setDocxImporting]     = React.useState(false);
@@ -2740,6 +2744,47 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
     if (swap < 0 || swap >= chapters.length) return;
     [chapters[idx], chapters[swap]] = [chapters[swap], chapters[idx]];
     updateBook({ chapters });
+  }
+  // ── Multi-select: select chapters, then move them all to top/bottom/a position, or bulk-delete ──
+  function toggleChapterSelected(idx) {
+    setSelectedChapters(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }
+  function selectAllChapters() {
+    setSelectedChapters(new Set((book.chapters || []).map((_, idx) => idx)));
+  }
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedChapters(new Set());
+    setMoveToPos('');
+  }
+  // destination: 'top' | 'bottom' | 1-based chapter number to insert before
+  function moveSelectedChapters(destination) {
+    const chapters = book.chapters || [];
+    if (selectedChapters.size === 0) return;
+    const orderedSelectedIdx = [...selectedChapters].sort((a, b) => a - b);
+    const moving = orderedSelectedIdx.map(idx => chapters[idx]);
+    const remaining = chapters.filter((_, idx) => !selectedChapters.has(idx));
+    let insertAt;
+    if (destination === 'top') insertAt = 0;
+    else if (destination === 'bottom') insertAt = remaining.length;
+    else {
+      const n = parseInt(destination, 10);
+      if (!n || n < 1) { alert('Enter a valid chapter number to move to.'); return; }
+      insertAt = Math.max(0, Math.min(remaining.length, n - 1));
+    }
+    const next = [...remaining.slice(0, insertAt), ...moving, ...remaining.slice(insertAt)];
+    updateBook({ chapters: next });
+    exitSelectMode();
+  }
+  function deleteSelectedChapters() {
+    if (selectedChapters.size === 0) return;
+    if (!confirm(`Delete ${selectedChapters.size} selected chapter(s)? This cannot be undone.`)) return;
+    updateBook({ chapters: (book.chapters || []).filter((_, idx) => !selectedChapters.has(idx)) });
+    exitSelectMode();
   }
   function startEdit(idx) {
     setEditingIdx(idx);
@@ -3383,14 +3428,61 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
               <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Chapters ({totalChapters})
               </div>
-              {totalChapters > 1 && (
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }}
-                  onClick={() => setSortDesc(d => !d)}
-                  title="Toggle sort order">
-                  {sortDesc ? '↑ Oldest First' : '↓ Newest First'}
-                </button>
-              )}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {totalChapters > 1 && (
+                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }}
+                    onClick={() => setSortDesc(d => !d)}
+                    title="Toggle sort order">
+                    {sortDesc ? '↑ Oldest First' : '↓ Newest First'}
+                  </button>
+                )}
+                {totalChapters > 1 && (
+                  <button
+                    onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
+                    style={{
+                      fontSize: 12, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
+                      border: '1px solid ' + (selectMode ? '#7c3aed' : 'var(--ink-border)'),
+                      background: selectMode ? '#7c3aed' : 'none',
+                      color: selectMode ? '#fff' : 'var(--ink-muted)', fontWeight: 600,
+                    }}
+                    title="Select multiple chapters to move or delete together">
+                    {selectMode ? '✓ Done Selecting' : '☑ Select'}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* ── Bulk actions toolbar (only visible in select mode) ── */}
+            {selectMode && (
+              <div style={{ border: '2px solid #7c3aed', borderRadius: 10, background: '#f5f3ff', padding: 10, marginBottom: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#5b21b6' }}>
+                  {selectedChapters.size} selected
+                </span>
+                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={selectAllChapters}>Select All</button>
+                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => setSelectedChapters(new Set())}>Clear</button>
+                <button className="btn-primary" style={{ fontSize: 12, padding: '4px 10px' }}
+                  disabled={selectedChapters.size === 0} onClick={() => moveSelectedChapters('top')}>
+                  ⤒ Move to Top
+                </button>
+                <button className="btn-primary" style={{ fontSize: 12, padding: '4px 10px' }}
+                  disabled={selectedChapters.size === 0} onClick={() => moveSelectedChapters('bottom')}>
+                  ⤓ Move to Bottom
+                </button>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input className="admin-input" placeholder="Ch. #" type="number" min="1"
+                    value={moveToPos} onChange={e => setMoveToPos(e.target.value)}
+                    style={{ width: 70, padding: '4px 6px', fontSize: 12 }} />
+                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }}
+                    disabled={selectedChapters.size === 0 || !moveToPos} onClick={() => moveSelectedChapters(moveToPos)}>
+                    Move To #
+                  </button>
+                </span>
+                <button className="btn-danger" style={{ fontSize: 12, padding: '4px 10px' }}
+                  disabled={selectedChapters.size === 0} onClick={deleteSelectedChapters}>
+                  🗑 Delete Selected
+                </button>
+              </div>
+            )}
 
             {totalChapters === 0 &&
               <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 8 }}>No chapters yet. Use "+ Add Chapter" above.</p>
@@ -3421,8 +3513,13 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   </div>
                 ) : (
                   /* ── Normal view ── */
-                  <div className="chapter-card" style={{ marginBottom: 4, padding: '8px 10px' }}>
+                  <div className="chapter-card" style={{ marginBottom: 4, padding: '8px 10px', background: selectMode && selectedChapters.has(i) ? '#f5f3ff' : undefined }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      {selectMode && (
+                        <input type="checkbox" checked={selectedChapters.has(i)}
+                          onChange={() => toggleChapterSelected(i)}
+                          style={{ width: 18, height: 18, flexShrink: 0, cursor: 'pointer' }} />
+                      )}
                       <div style={{ flex: '1 1 150px', minWidth: 0 }}>
                         <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                           Chapter {i + 1}: {c.title}
