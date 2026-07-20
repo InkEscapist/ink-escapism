@@ -248,9 +248,20 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1784510100828",
-      "recommendations": [],
-      "frontTags": [],
-      "chapterCount": 0
+      "recommendations": [
+        {
+          "bookId": "1777835439851",
+          "blurb": ""
+        }
+      ],
+      "frontTags": [
+        "tag_1777957425566"
+      ],
+      "customBtnLabel": "Download Full Book",
+      "customBtnUrl": "https://www.patreon.com/posts/164299722?utm_campaign=postshare_creator&utm_content=android_share",
+      "cpaGates": 2,
+      "readerMessage": "",
+      "chapterCount": 35
     },
     {
       "title": "Secret Crush Loses Memory and Becomes My Boyfriend",
@@ -263,8 +274,14 @@
       "language": "en",
       "id": "1784510257239",
       "recommendations": [],
-      "frontTags": [],
-      "chapterCount": 0
+      "frontTags": [
+        "tag_1777957425566"
+      ],
+      "customBtnLabel": "Download full book",
+      "customBtnUrl": "https://www.patreon.com/posts/164298777?utm_campaign=postshare_creator&utm_content=android_share",
+      "cpaGates": 2,
+      "readerMessage": "",
+      "chapterCount": 30
     },
     {
       "title": "The Big Boss’s Little Wife ",
@@ -277,8 +294,14 @@
       "language": "en",
       "id": "1784510386444",
       "recommendations": [],
-      "frontTags": [],
-      "chapterCount": 0
+      "frontTags": [
+        "tag_1777957425566"
+      ],
+      "customBtnLabel": "Download full book ",
+      "customBtnUrl": "https://www.patreon.com/posts/164298564?utm_campaign=postshare_creator&utm_content=android_share",
+      "cpaGates": 2,
+      "readerMessage": "",
+      "chapterCount": 31
     },
     {
       "title": "My Fair Princess: The Pampered Imperial Concubine Chen and the Emperor’s Road to Redemption ",
@@ -291,8 +314,15 @@
       "language": "en",
       "id": "1784510466729",
       "recommendations": [],
-      "frontTags": [],
-      "chapterCount": 0
+      "frontTags": [
+        "tag_1777957425566",
+        "tag_1777957464383"
+      ],
+      "customBtnLabel": "Download Full Book",
+      "customBtnUrl": "https://www.patreon.com/posts/164298905?utm_campaign=postshare_creator&utm_content=android_share",
+      "cpaGates": 2,
+      "readerMessage": "",
+      "chapterCount": 25
     },
     {
       "title": "Did My Husband Fall in Love with Someone Else While Resurrecting Me?",
@@ -305,8 +335,14 @@
       "language": "en",
       "id": "1784510576923",
       "recommendations": [],
-      "frontTags": [],
-      "chapterCount": 0
+      "frontTags": [
+        "tag_1777957425566"
+      ],
+      "customBtnLabel": "Download Full Book",
+      "customBtnUrl": "https://www.patreon.com/posts/164299576?utm_campaign=postshare_creator&utm_content=android_share",
+      "cpaGates": 2,
+      "readerMessage": "",
+      "chapterCount": 34
     },
     {
       "title": "Wrongful Yearning",
