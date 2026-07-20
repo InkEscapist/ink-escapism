@@ -262,9 +262,10 @@
   ],
   "recommendations": [],
   "frontTags": [
-    "tag_1777957425566",
     "tag_1782137796679"
   ],
   "customBtnLabel": "",
-  "customBtnUrl": ""
+  "customBtnUrl": "",
+  "cpaGates": 2,
+  "readerMessage": ""
 }
