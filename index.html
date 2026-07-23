@@ -524,12 +524,15 @@ async function ghLoad(fullLoad = false) {
 }
 
 
-async function ghCreateBlob(BASE, headers, content) {
+async function ghCreateBlob(BASE, headers, content, label) {
   const res = await fetch(`${BASE}/git/blobs`, {
     method: "POST", headers,
     body: JSON.stringify({ content, encoding: "utf-8" })
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.message || "Blob creation failed"); }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(`[create blob: ${label}] HTTP ${res.status} — ${e.message || "Blob creation failed"}`);
+  }
   return (await res.json()).sha;
 }
 
@@ -551,17 +554,23 @@ async function ghSave(data, token) {
 
   // ── Get current branch ref ──
   const refRes = await fetch(`${BASE}/git/ref/heads/main`, { headers });
-  if (!refRes.ok) { const e = await refRes.json(); throw new Error(e.message || "Could not get branch ref"); }
+  if (!refRes.ok) {
+    const e = await refRes.json().catch(() => ({}));
+    throw new Error(`[1/6 get branch ref: heads/main] HTTP ${refRes.status} — ${e.message || "Could not get branch ref"}`);
+  }
   const { object: { sha: commitSha } } = await refRes.json();
 
   const commitRes = await fetch(`${BASE}/git/commits/${commitSha}`, { headers });
-  if (!commitRes.ok) { const e = await commitRes.json(); throw new Error(e.message || "Could not get commit"); }
+  if (!commitRes.ok) {
+    const e = await commitRes.json().catch(() => ({}));
+    throw new Error(`[2/6 get commit ${commitSha.slice(0,7)}] HTTP ${commitRes.status} — ${e.message || "Could not get commit"}`);
+  }
   const { tree: { sha: treeSha } } = await commitRes.json();
 
   // ── Create blobs for index.json + all book files in parallel ──
   const [indexBlobSha, ...bookBlobShas] = await Promise.all([
-    ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2)),
-    ...(data.books || []).map(b => ghCreateBlob(BASE, headers, JSON.stringify(b, null, 2)))
+    ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2), "index.json"),
+    ...(data.books || []).map(b => ghCreateBlob(BASE, headers, JSON.stringify(b, null, 2), GH_BOOKS_PATH(b.id)))
   ]);
 
   // ── Build the tree entries ──
@@ -577,7 +586,10 @@ async function ghSave(data, token) {
     method: "POST", headers,
     body: JSON.stringify({ base_tree: treeSha, tree: treeEntries })
   });
-  if (!newTreeRes.ok) { const e = await newTreeRes.json(); throw new Error(e.message || "Tree creation failed"); }
+  if (!newTreeRes.ok) {
+    const e = await newTreeRes.json().catch(() => ({}));
+    throw new Error(`[4/6 create tree] HTTP ${newTreeRes.status} — ${e.message || "Tree creation failed"}`);
+  }
   const { sha: newTreeSha } = await newTreeRes.json();
 
   // ── Create new commit ──
@@ -589,7 +601,10 @@ async function ghSave(data, token) {
       parents: [commitSha]
     })
   });
-  if (!newCommitRes.ok) { const e = await newCommitRes.json(); throw new Error(e.message || "Commit creation failed"); }
+  if (!newCommitRes.ok) {
+    const e = await newCommitRes.json().catch(() => ({}));
+    throw new Error(`[5/6 create commit] HTTP ${newCommitRes.status} — ${e.message || "Commit creation failed"}`);
+  }
   const { sha: newCommitSha } = await newCommitRes.json();
 
   // ── Update branch ref ──
@@ -597,7 +612,10 @@ async function ghSave(data, token) {
     method: "PATCH", headers,
     body: JSON.stringify({ sha: newCommitSha })
   });
-  if (!updateRefRes.ok) { const e = await updateRefRes.json(); throw new Error(e.message || "Ref update failed"); }
+  if (!updateRefRes.ok) {
+    const e = await updateRefRes.json().catch(() => ({}));
+    throw new Error(`[6/6 update branch ref] HTTP ${updateRefRes.status} — ${e.message || "Ref update failed"}`);
+  }
 
   // Update cache with newly saved books
   (data.books || []).forEach(b => { _bookCache[b.id] = b; });
