@@ -120,11 +120,12 @@
           "bookId": "1775788486628"
         }
       ],
-      "showPatreonOnLast": true,
-      "customBtnLabel": "",
-      "customBtnUrl": "",
+      "showPatreonOnLast": false,
+      "customBtnLabel": "Download Full Book ",
+      "customBtnUrl": "https://www.patreon.com/posts/164672723?utm_campaign=postshare_creator&utm_content=android_share",
       "language": "en",
       "cpaGates": 3,
+      "readerMessage": "",
       "chapterCount": 115
     },
     {
