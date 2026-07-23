@@ -1736,6 +1736,9 @@ function Reader({ data, setData, remoteLoaded }) {
         const nextEnd = lastCh + 5;
         const showPatreon = !!(book.patreon && book.showPatreonOnLast);
         const showCustom = !!(book.customBtnLabel && book.customBtnUrl);
+        // Only push the internal "read advanced chapter" CTA if this book
+        // actually uses the advanced-chapter gate system somewhere in its chapters.
+        const hasAdvancedChapters = chapters.some(c => c.advanced);
         return (
           <div style={{
             marginTop: 48, padding: 28,
@@ -1745,14 +1748,22 @@ function Reader({ data, setData, remoteLoaded }) {
             <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>
               You've reached the latest chapter! 🎉
             </p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 8 }}>
-              More chapters are available — continue reading now.
-            </p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6,
-              background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
-              border: '1px solid rgba(124,58,237,0.2)' }}>
-              💜 Next week's chapters are available now. Click below to support the translator and continue, or read ahead on Patreon.
-            </p>
+            {hasAdvancedChapters ? (
+              <>
+                <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 8 }}>
+                  More chapters are available — continue reading now.
+                </p>
+                <p style={{ color: 'var(--ink-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6,
+                  background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
+                  border: '1px solid rgba(124,58,237,0.2)' }}>
+                  💜 Next week's chapters are available now. Click below to support the translator and continue, or read ahead on Patreon.
+                </p>
+              </>
+            ) : (
+              <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 20 }}>
+                You've read all currently available chapters. Thanks for reading!
+              </p>
+            )}
             {book.readerMessage && (
               <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 20, lineHeight: 1.6,
                 fontStyle: 'italic', padding: '10px 14px', borderRadius: 8,
@@ -1761,25 +1772,29 @@ function Reader({ data, setData, remoteLoaded }) {
               </p>
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
-              {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate */}
-              <a href={`#/read/${book.id}/${lastCh + 1}`}
-                data-chapter-nav data-advanced="1"
-                style={{
-                  flex: 1, minWidth: 200,
-                  padding: '14px 20px',
-                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                  color: '#fff',
-                  borderRadius: 10,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  display: 'block',
-                  boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-                }}>
-                💜 Read Chapter {nextStart} Now
-              </a>
+              {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate.
+                  Only shown if the book actually has advanced chapters set up — otherwise this would
+                  link to a chapter that doesn't exist. */}
+              {hasAdvancedChapters && (
+                <a href={`#/read/${book.id}/${lastCh + 1}`}
+                  data-chapter-nav data-advanced="1"
+                  style={{
+                    flex: 1, minWidth: 200,
+                    padding: '14px 20px',
+                    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                    color: '#fff',
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    fontSize: 15,
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    display: 'block',
+                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                  }}>
+                  💜 Read Chapter {nextStart} Now
+                </a>
+              )}
               {showPatreon && (
                 <a href={book.patreon} target="_blank" style={{
                   flex: 1, minWidth: 200,
