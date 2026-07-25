@@ -392,13 +392,18 @@ async function ghLoadIndex() {
 }
 
 // Load a single book's full data (with chapters), with cache
+// Snapshot of the JSON exactly as loaded from GitHub — used later by ghSave
+// to detect which books actually changed, so publish only re-uploads those.
+const _bookSnapshot = {};
 async function ghLoadBook(id) {
   if (_bookCache[id]) return _bookCache[id];
   try {
     const res = await fetch(GH_BOOKS_RAW(id) + "?t=" + Date.now());
     if (!res.ok) return null;
-    const book = await res.json();
+    const text = await res.text();
+    const book = JSON.parse(text);
     _bookCache[id] = book;
+    _bookSnapshot[id] = text;
     return book;
   } catch { return null; }
 }
@@ -512,15 +517,23 @@ function buildFullData(indexData) {
   return { ...indexData, books };
 }
 
-// ghLoad: loads index for readers; for admin, loads index + all books in parallel
+// ghLoad: loads index for readers; for admin, loads index + all books in parallel.
+// Returns { data, failedIds } — failedIds lists any books that could NOT be
+// fully loaded (e.g. due to a flaky connection), so the caller can warn the
+// user and refuse to publish instead of silently wiping those books' chapters.
 async function ghLoad(fullLoad = false) {
   const indexData = await ghLoadIndex();
-  if (!indexData) return null;
+  if (!indexData) return { data: null, failedIds: [] };
+  let failedIds = [];
   if (fullLoad) {
-    // Admin needs chapters — load all books in parallel
-    await Promise.all((indexData.books || []).map(b => ghLoadBook(b.id)));
+    // Admin needs chapters — load all books in parallel, but track failures.
+    const results = await Promise.all((indexData.books || []).map(async b => {
+      const book = await ghLoadBook(b.id);
+      return { id: b.id, ok: !!book };
+    }));
+    failedIds = results.filter(r => !r.ok).map(r => r.id);
   }
-  return buildFullData(indexData);
+  return { data: buildFullData(indexData), failedIds };
 }
 
 
@@ -567,18 +580,50 @@ async function ghSave(data, token) {
   }
   const { tree: { sha: treeSha } } = await commitRes.json();
 
-  // ── Create blobs for index.json + all book files in parallel ──
-  const [indexBlobSha, ...bookBlobShas] = await Promise.all([
-    ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2), "index.json"),
-    ...(data.books || []).map(b => ghCreateBlob(BASE, headers, JSON.stringify(b, null, 2), GH_BOOKS_PATH(b.id)))
-  ]);
+  // ── Look up what's already on GitHub, so unchanged books can reuse their
+  //    existing blob instead of being re-uploaded (this is what makes
+  //    publishing slow when nothing about most books actually changed) ──
+  const existingShaByPath = {};
+  try {
+    const fullTreeRes = await fetch(`${BASE}/git/trees/${treeSha}?recursive=1`, { headers });
+    if (fullTreeRes.ok) {
+      const fullTree = await fullTreeRes.json();
+      (fullTree.tree || []).forEach(entry => {
+        if (entry.type === 'blob') existingShaByPath[entry.path] = entry.sha;
+      });
+    }
+  } catch { /* if this fails, we just fall back to re-uploading everything */ }
 
-  // ── Build the tree entries ──
+  // ── Figure out which books actually changed since they were loaded ──
+  const bookContents = (data.books || []).map(b => ({
+    book: b,
+    path: GH_BOOKS_PATH(b.id),
+    content: JSON.stringify(b, null, 2),
+  }));
+  const unchanged = [];
+  const toUpload = [];
+  bookContents.forEach(bc => {
+    const snapshot = _bookSnapshot[bc.book.id];
+    const existingSha = existingShaByPath[bc.path];
+    if (snapshot && snapshot === bc.content && existingSha) {
+      unchanged.push({ ...bc, sha: existingSha });
+    } else {
+      toUpload.push(bc);
+    }
+  });
+
+  // ── Create blobs only for index.json + the books that changed ──
+  const [indexBlobSha, ...changedBlobShas] = await Promise.all([
+    ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2), "index.json"),
+    ...toUpload.map(bc => ghCreateBlob(BASE, headers, bc.content, bc.path))
+  ]);
+  toUpload.forEach((bc, i) => { bc.sha = changedBlobShas[i]; });
+
+  // ── Build the tree entries — reused shas for unchanged books, fresh shas for changed ones ──
   const treeEntries = [
     { path: "index.json", mode: "100644", type: "blob", sha: indexBlobSha },
-    ...(data.books || []).map((b, i) => ({
-      path: GH_BOOKS_PATH(b.id), mode: "100644", type: "blob", sha: bookBlobShas[i]
-    }))
+    ...unchanged.map(bc => ({ path: bc.path, mode: "100644", type: "blob", sha: bc.sha })),
+    ...toUpload.map(bc => ({ path: bc.path, mode: "100644", type: "blob", sha: bc.sha })),
   ];
 
   // ── Create new tree ──
@@ -617,8 +662,12 @@ async function ghSave(data, token) {
     throw new Error(`[6/6 update branch ref] HTTP ${updateRefRes.status} — ${e.message || "Ref update failed"}`);
   }
 
-  // Update cache with newly saved books
-  (data.books || []).forEach(b => { _bookCache[b.id] = b; });
+  // Update cache + snapshots with newly saved books, so the NEXT publish
+  // knows these are now the current baseline (unchanged until edited again).
+  bookContents.forEach(bc => {
+    _bookCache[bc.book.id] = bc.book;
+    _bookSnapshot[bc.book.id] = bc.content;
+  });
 
   // Also publish rss.xml
   try { await ghSaveRSS(data, token); } catch {}
@@ -819,6 +868,10 @@ function useStorage() {
   // Until this is true, a book that isn't in the embedded data might just not be
   // loaded YET (not actually missing) — used to avoid flashing "Book not found".
   const [remoteLoaded, setRemoteLoaded] = React.useState(false);
+  // Book ids that failed to fully load their chapters (e.g. a flaky connection
+  // during admin load). While this is non-empty, publishing is dangerous —
+  // it would overwrite those books' real chapters on GitHub with nothing.
+  const [incompleteBookIds, setIncompleteBookIds] = React.useState([]);
 
   React.useEffect(() => {
     async function init() {
@@ -828,10 +881,13 @@ function useStorage() {
         // ── ADMIN: load index + all book files (chapters needed for editing) ──
         setSyncMsg("⏳ Loading from GitHub…");
         try {
-          const remote = await ghLoad(true);
+          const { data: remote, failedIds } = await ghLoad(true);
           if (remote && remote.books) {
             setDataRaw(remote);
-            setSyncMsg("✅ Books loaded from GitHub!");
+            setIncompleteBookIds(failedIds);
+            setSyncMsg(failedIds.length
+              ? `⚠️ ${failedIds.length} book(s) failed to load — do not publish yet.`
+              : "✅ Books loaded from GitHub!");
           } else {
             setSyncMsg("ℹ️ No books found — add some below!");
           }
@@ -843,7 +899,7 @@ function useStorage() {
       } else {
         // ── READER: load index.json only (fast, no chapters needed for listing) ──
         try {
-          const remote = await ghLoad(false);
+          const { data: remote } = await ghLoad(false);
           if (remote && remote.books) {
             setDataRaw(remote);
           }
@@ -865,10 +921,56 @@ function useStorage() {
     try { localStorage.setItem("ink-data-v2", JSON.stringify(newData)); } catch {}
   }
 
+  // Retries loading ONLY the books that failed last time (or, if none are
+  // flagged, re-checks every book) — without a full page reload. Merges any
+  // newly-successful loads into the current data and clears them from the
+  // incomplete list.
+  async function retryLoadMissing() {
+    const idsToTry = incompleteBookIds.length
+      ? incompleteBookIds
+      : (data.books || []).map(b => b.id);
+
+    setSyncMsg("⏳ Checking for missing chapters…");
+    const results = await Promise.all(idsToTry.map(async id => {
+      _bookCache[id] = null; // force a real re-fetch, don't trust a stale failed cache
+      delete _bookCache[id];
+      const book = await ghLoadBook(id);
+      return { id, book };
+    }));
+
+    const stillFailed = results.filter(r => !r.book).map(r => r.id);
+    const recovered = results.filter(r => r.book);
+
+    if (recovered.length) {
+      setDataRaw(prev => ({
+        ...prev,
+        books: prev.books.map(b => {
+          const fixed = recovered.find(r => r.id === b.id);
+          return fixed ? fixed.book : b;
+        }),
+      }));
+    }
+
+    setIncompleteBookIds(stillFailed);
+    setSyncMsg(stillFailed.length
+      ? `⚠️ Still ${stillFailed.length} book(s) not loaded — check your connection and try again.`
+      : "✅ All books fully loaded — safe to publish.");
+    setTimeout(() => setSyncMsg(""), 4500);
+  }
+
   // Token is held in memory only — never written to the file or localStorage
   const sessionToken = React.useRef(null);
 
   async function pushToGitHub(newData) {
+    if (incompleteBookIds.length > 0) {
+      const proceed = confirm(
+        `⚠️ ${incompleteBookIds.length} book(s) never fully loaded from GitHub.\n\n` +
+        `Publishing now will very likely ERASE their chapters, just like before.\n\n` +
+        `Tap Cancel and use "Load Missing Chapters" first (recommended), or OK to publish anyway at your own risk.`
+      );
+      if (!proceed) return;
+    }
+
     // Ask for token if we don't have one for this session
     if (!sessionToken.current) {
       const t = window.prompt(
@@ -894,7 +996,7 @@ function useStorage() {
     setTimeout(() => setSyncMsg(""), 5000);
   }
 
-  return [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded];
+  return [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing];
 }
 
 /* ─── Dark mode context ───────────────────────────────────── */
@@ -3708,7 +3810,7 @@ function BookListManager({ data, setData }) {
   </>);
 }
 
-function Admin({ data, setData, pushToGitHub }) {
+function Admin({ data, setData, pushToGitHub, incompleteBookIds, retryLoadMissing }) {
   const [logged, setLogged] = React.useState(false);
   const [pass, setPass] = React.useState("");
   const [passErr, setPassErr] = React.useState(false);
@@ -3865,16 +3967,49 @@ function Admin({ data, setData, pushToGitHub }) {
         <div style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', borderRadius: 8, padding: '8px 12px', marginBottom: 14, lineHeight: 1.6 }}>
           💡 <strong>How it works:</strong> Your edits are saved locally in your browser automatically. When you're ready for readers to see them, click Publish.
         </div>
+
+        {incompleteBookIds.length > 0 && (
+          <div style={{ fontSize: 13, color: '#991b1b', background: '#fef2f2', border: '1px solid #fecaca',
+            borderRadius: 8, padding: '10px 14px', marginBottom: 14, lineHeight: 1.6 }}>
+            ⚠️ <strong>{incompleteBookIds.length} book(s) didn't fully load</strong> from GitHub (likely a connection hiccup). Publishing now could erase their chapters. Tap "Load Missing Chapters" below before publishing.
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             onClick={() => pushToGitHub(data)}
+            disabled={incompleteBookIds.length > 0}
+            title={incompleteBookIds.length > 0 ? "Some books haven't fully loaded — load them first to avoid losing chapters" : ""}
             style={{
-              background: '#7c3aed', color: '#fff', border: 'none',
+              background: incompleteBookIds.length > 0 ? '#c4b5fd' : '#7c3aed',
+              color: '#fff', border: 'none',
               borderRadius: 8, padding: '11px 22px',
-              fontWeight: 700, fontSize: 14, cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(124,58,237,0.35)'
+              fontWeight: 700, fontSize: 14,
+              cursor: incompleteBookIds.length > 0 ? 'not-allowed' : 'pointer',
+              boxShadow: incompleteBookIds.length > 0 ? 'none' : '0 4px 14px rgba(124,58,237,0.35)'
             }}>
             🚀 Publish Changes
+          </button>
+          {incompleteBookIds.length > 0 && (
+            <button
+              onClick={() => pushToGitHub(data)}
+              style={{
+                background: 'none', border: 'none', color: '#991b1b',
+                fontSize: 12, textDecoration: 'underline', cursor: 'pointer', padding: '4px 2px'
+              }}>
+              Still stuck? Publish anyway (risky)
+            </button>
+          )}
+          <button
+            onClick={retryLoadMissing}
+            style={{
+              background: incompleteBookIds.length > 0 ? '#16a34a' : 'transparent',
+              color: incompleteBookIds.length > 0 ? '#fff' : 'var(--ink-text)',
+              border: incompleteBookIds.length > 0 ? 'none' : '1px solid var(--ink-border)',
+              borderRadius: 8, padding: '11px 18px',
+              fontWeight: 700, fontSize: 13, cursor: 'pointer'
+            }}>
+            🔄 Load Missing Chapters
           </button>
           <button
             onClick={async () => {
@@ -4026,7 +4161,7 @@ function Admin({ data, setData, pushToGitHub }) {
 
 /* ─── App Shell ───────────────────────────────────────────── */
 function App() {
-  const [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded] = useStorage();
+  const [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing] = useStorage();
   const [dark, setDark] = React.useState(false);
   const [route, setRoute] = React.useState(location.hash);
 
@@ -4037,7 +4172,7 @@ function App() {
   }, []);
 
   let page;
-  if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} />;
+  if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} incompleteBookIds={incompleteBookIds} retryLoadMissing={retryLoadMissing} />;
   else if (route.startsWith("#/book/")) page = <BookPage data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/read/")) page = <Reader data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/more/")) page = <Home data={data} remoteLoaded={remoteLoaded} />;
