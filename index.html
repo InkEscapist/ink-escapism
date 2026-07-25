@@ -1241,6 +1241,17 @@ function BookPage({ data, setData, remoteLoaded }) {
         }
         <div style={{ flex: 1, minWidth: 0 }}>
           <span className={`badge badge-${book.status}`} style={{ marginBottom: 8 }}>{book.status}</span>
+          {book.weeklyUpdates && (
+            <span style={{
+              display: 'inline-block', marginLeft: 8, marginBottom: 8,
+              padding: '3px 10px', borderRadius: 999,
+              background: '#16a34a', color: '#fff',
+              fontSize: 11, fontWeight: 800, letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+            }}>
+              Weekly Updates
+            </span>
+          )}
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{book.title}</h1>
           <p style={{ color: 'var(--ink-muted)', marginBottom: 16 }}>by {book.author}</p>
           {/* Custom button replaces Patreon button on book details page */}
@@ -1651,14 +1662,28 @@ function Reader({ data, setData, remoteLoaded }) {
         ☰ Chapter {current + 1} / {chapters.length}
       </button>
 
-      {/* Next */}
+      {/* Next — on the last chapter, this slot becomes the custom "full book" button */}
       {isLast ? (
-        <span style={{
-          padding: '8px 14px', borderRadius: 8,
-          border: '1px solid var(--ink-border)',
-          background: 'var(--ink-card)', color: 'var(--ink-muted)',
-          fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-        }}>End ✓</span>
+        book.customBtnLabel && book.customBtnUrl ? (
+          <a href={book.customBtnUrl} target="_blank"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 8,
+              border: '1px solid var(--ink-border)',
+              background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+              color: '#fff',
+              textDecoration: 'none', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
+            }}>
+            {book.customBtnLabel}
+          </a>
+        ) : (
+          <span style={{
+            padding: '8px 14px', borderRadius: 8,
+            border: '1px solid var(--ink-border)',
+            background: 'var(--ink-card)', color: 'var(--ink-muted)',
+            fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+          }}>End ✓</span>
+        )
       ) : (
         <a href={`#/read/${book.id}/${current + 1}`}
           data-chapter-nav data-advanced={chapters[current + 1]?.advanced ? '1' : undefined}
@@ -1747,116 +1772,20 @@ function Reader({ data, setData, remoteLoaded }) {
       {/* Banner ad — always shown just before the Prev/Next navigation */}
       <AdBanner adKey="7eebd04377631c55e0fd84d6698abbb3" width={300} height={250} />
 
-      {/* Read ahead CTA on last chapter — Patreon and/or custom button */}
-      {isLast && (book.showPatreonOnLast || (book.customBtnLabel && book.customBtnUrl)) && (() => {
-        const lastCh = chapters.length;
-        const nextStart = lastCh + 1;
-        const nextEnd = lastCh + 5;
-        const showPatreon = !!(book.patreon && book.showPatreonOnLast);
-        const showCustom = !!(book.customBtnLabel && book.customBtnUrl);
-        // Only push the internal "read advanced chapter" CTA if this book
-        // actually uses the advanced-chapter gate system somewhere in its chapters.
-        const hasAdvancedChapters = chapters.some(c => c.advanced);
-        return (
-          <div style={{
-            marginTop: 48, padding: 28,
-            background: 'var(--ink-card)', borderRadius: 16,
-            border: '1px solid var(--ink-border)', textAlign: 'center',
+      {/* Weekly Updates tag — last chapter only, sits above the nav buttons */}
+      {isLast && book.weeklyUpdates && (
+        <div style={{ textAlign: 'center', marginTop: 32 }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '4px 12px', borderRadius: 999,
+            background: '#16a34a', color: '#fff',
+            fontSize: 12, fontWeight: 800, letterSpacing: '0.03em',
+            textTransform: 'uppercase',
           }}>
-            <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>
-              You've reached the latest chapter! 🎉
-            </p>
-            {hasAdvancedChapters ? (
-              <>
-                <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 8 }}>
-                  More chapters are available — continue reading now.
-                </p>
-                <p style={{ color: 'var(--ink-muted)', fontSize: 13, marginBottom: 20, lineHeight: 1.6,
-                  background: 'rgba(124,58,237,0.08)', borderRadius: 8, padding: '10px 14px',
-                  border: '1px solid rgba(124,58,237,0.2)' }}>
-                  💜 Next week's chapters are available now. Click below to support the translator and continue, or read ahead on Patreon.
-                </p>
-              </>
-            ) : (
-              <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 20 }}>
-                You've read all currently available chapters. Thanks for reading!
-              </p>
-            )}
-            {book.readerMessage && (
-              <p style={{ color: 'var(--ink-text)', fontSize: 14, marginBottom: 20, lineHeight: 1.6,
-                fontStyle: 'italic', padding: '10px 14px', borderRadius: 8,
-                background: 'var(--ink-card)', border: '1px solid var(--ink-border)' }}>
-                {book.readerMessage}
-              </p>
-            )}
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 480, margin: '0 auto' }}>
-              {/* Navigates to the next chapter, which is advanced and will show its own Adsterra gate.
-                  Only shown if the book actually has advanced chapters set up — otherwise this would
-                  link to a chapter that doesn't exist. */}
-              {hasAdvancedChapters && (
-                <a href={`#/read/${book.id}/${lastCh + 1}`}
-                  data-chapter-nav data-advanced="1"
-                  style={{
-                    flex: 1, minWidth: 200,
-                    padding: '14px 20px',
-                    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                    color: '#fff',
-                    borderRadius: 10,
-                    fontWeight: 700,
-                    fontSize: 15,
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    display: 'block',
-                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-                  }}>
-                  💜 Read Chapter {nextStart} Now
-                </a>
-              )}
-              {showPatreon && (
-                <a href={book.patreon} target="_blank" style={{
-                  flex: 1, minWidth: 200,
-                  padding: '14px 20px',
-                  background: 'linear-gradient(135deg, #f96854, #ff424d)',
-                  color: '#fff',
-                  borderRadius: 10,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s',
-                  boxShadow: '0 4px 14px rgba(249,104,84,0.35)',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                  {`Read Chapter ${nextStart} to ${nextEnd}`}
-                </a>
-              )}
-              {showCustom && (
-                <a href={book.customBtnUrl} target="_blank" style={{
-                  flex: 1, minWidth: 200,
-                  padding: '14px 20px',
-                  background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                  color: '#fff',
-                  borderRadius: 10,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s',
-                  boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                  {book.customBtnLabel}
-                </a>
-              )}
-            </div>
-          </div>
-        );
-      })()}
+            Weekly Updates
+          </span>
+        </div>
+      )}
 
       {/* Bottom nav */}
       {navBar(false)}
@@ -2715,6 +2644,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
       status: book.status || 'ongoing',
       patreon: book.patreon || '',
       showPatreonOnLast: !!book.showPatreonOnLast,
+      weeklyUpdates: !!book.weeklyUpdates,
       customBtnLabel: book.customBtnLabel || '',
       customBtnUrl: book.customBtnUrl || '',
       language: book.language || 'en',
@@ -3045,6 +2975,13 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   on={bookForm.showPatreonOnLast}
                   onToggle={() => setBookForm(f => ({ ...f, showPatreonOnLast: !f.showPatreonOnLast }))}
                   label="Show Patreon button after last chapter"
+                />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Toggle
+                  on={bookForm.weeklyUpdates}
+                  onToggle={() => setBookForm(f => ({ ...f, weeklyUpdates: !f.weeklyUpdates }))}
+                  label="Show green 'Weekly Updates' tag"
                 />
               </div>
 
