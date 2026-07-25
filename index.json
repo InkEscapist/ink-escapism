@@ -31,7 +31,7 @@
       "showPatreonOnLast": true,
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 80
+      "chapterCount": 0
     },
     {
       "id": "1780850437153",
@@ -50,7 +50,7 @@
       "recommendations": [],
       "showPatreonOnLast": false,
       "archived": true,
-      "chapterCount": 93
+      "chapterCount": 0
     },
     {
       "id": "1775205511886",
@@ -74,7 +74,7 @@
       ],
       "showPatreonOnLast": false,
       "archived": true,
-      "chapterCount": 115
+      "chapterCount": 0
     },
     {
       "id": "1775435546083",
@@ -97,7 +97,7 @@
       "customBtnUrl": "",
       "cpaGates": 3,
       "readerMessage": "",
-      "chapterCount": 130
+      "chapterCount": 0
     },
     {
       "id": "1776443629230",
@@ -126,7 +126,7 @@
       "language": "en",
       "cpaGates": 3,
       "readerMessage": "",
-      "chapterCount": 115
+      "chapterCount": 0
     },
     {
       "id": "1777691358789",
@@ -145,7 +145,7 @@
       "recommendations": [],
       "showPatreonOnLast": false,
       "archived": true,
-      "chapterCount": 157
+      "chapterCount": 0
     },
     {
       "id": "1777835439851",
@@ -163,7 +163,7 @@
       "language": "en",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 40
+      "chapterCount": 0
     },
     {
       "id": "1775788486628",
@@ -183,7 +183,7 @@
       "showPatreonOnLast": false,
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 45
+      "chapterCount": 0
     },
     {
       "id": "1780855707303",
@@ -202,7 +202,7 @@
       "recommendations": [],
       "showPatreonOnLast": false,
       "archived": true,
-      "chapterCount": 140
+      "chapterCount": 0
     },
     {
       "title": "I Started Blowing Rainbow Farts at My Rival",
@@ -222,7 +222,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 50
+      "chapterCount": 0
     },
     {
       "title": "The Tyrant Invades My Dream Every Night",
@@ -242,7 +242,7 @@
       "customBtnUrl": "",
       "cpaGates": 3,
       "readerMessage": "",
-      "chapterCount": 49
+      "chapterCount": 0
     },
     {
       "title": "After Breaking the Engagement, I Bought a Stunning Power-Player as My Husband for Eight Hundred Taels",
@@ -263,11 +263,12 @@
       "frontTags": [
         "tag_1777957425566"
       ],
-      "customBtnLabel": "Download Full Book",
+      "customBtnLabel": "📥 Full Book",
       "customBtnUrl": "https://www.patreon.com/posts/164299722?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 35
+      "chapterCount": 0,
+      "weeklyUpdates": true
     },
     {
       "title": "Secret Crush Loses Memory and Becomes My Boyfriend",
@@ -287,7 +288,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164298777?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 30
+      "chapterCount": 0
     },
     {
       "title": "The Big Boss’s Little Wife ",
@@ -307,7 +308,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164298564?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 31
+      "chapterCount": 0
     },
     {
       "title": "My Fair Princess: The Pampered Imperial Concubine Chen and the Emperor’s Road to Redemption ",
@@ -328,7 +329,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164298905?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 25
+      "chapterCount": 0
     },
     {
       "title": "Wrongful Yearning",
@@ -348,7 +349,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164297583?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 25
+      "chapterCount": 0
     },
     {
       "title": "Falling into the Emperor’s Embrace ",
@@ -368,7 +369,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164299106?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 37
+      "chapterCount": 0
     },
     {
       "title": "Escape with the Summer Wind",
@@ -388,7 +389,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164299441?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 38
+      "chapterCount": 0
     },
     {
       "title": "Tyrant Abuses Me? Turn Around and Collude with the Eunuch to Seize His Empire",
@@ -408,7 +409,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164298236?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 142
+      "chapterCount": 0
     },
     {
       "title": "Espionage: Codename Tian Du Chao Feng ",
@@ -428,7 +429,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164299307?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 40
+      "chapterCount": 0
     },
     {
       "title": "Transmigrated as a Vicious Supporting Female Lead? The Male Lead Insists on Marrying Me! ",
@@ -448,7 +449,7 @@
       "customBtnUrl": "https://www.patreon.com/posts/164298380?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
       "readerMessage": "",
-      "chapterCount": 31
+      "chapterCount": 0
     },
     {
       "title": "Zero-Degree Ambiguity",
