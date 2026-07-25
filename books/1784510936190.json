@@ -724,8 +724,9 @@
   "frontTags": [
     "tag_1777957425566"
   ],
-  "customBtnLabel": "Download Full Book ",
+  "customBtnLabel": "📥 Full Book ",
   "customBtnUrl": "https://www.patreon.com/posts/164298236?utm_campaign=postshare_creator&utm_content=android_share",
   "cpaGates": 2,
-  "readerMessage": ""
+  "readerMessage": "",
+  "weeklyUpdates": true
 }

@@ -7,9 +7,7 @@
   "patreon": "https://www.patreon.com/collection/2147323?utm_campaign=collectionshare_creator&utm_content=android_share",
   "language": "en",
   "synopsis": "Lu Huaixi had been slipped onto the list of girls entering the imperial palace. Left with no good options, she got engaged to Xie Yuanjing — a man she had absolutely nothing to do with. A one-year agreement. Each getting what they need. After the separation, their marriages would be none of each other's business. Lu Huaixi was perfectly satisfied with this.\n\nBut Xie Yuanjing seemed a little *too* good to her — and she found herself sinking in, just a tiny bit.\n\nXie Yuanjing brought home a young girl and treated her like a child to look after — proper and upright, letting her do as she pleased. But the girl was too good. He sank in. He couldn't stand to see her grow close to others, couldn't stand to see her smile at someone else, couldn't stand to see her distance herself from him. He wanted to trade everything good he had just to make her stay.\n\nLater, when the Lu family patriarch was wondering where his daughter could go after the separation, Young Master Xie pulled her back behind him.\n\n\"Separation? There's no such thing.\"",
-  "frontTags": [
-    "tag_1777957425566"
-  ],
+  "frontTags": [],
   "customBtnUrl": "",
   "customBtnLabel": "",
   "recommendations": [],
@@ -871,5 +869,8 @@
       "status": "published"
     }
   ],
-  "archived": true
+  "archived": true,
+  "weeklyUpdates": false,
+  "cpaGates": 2,
+  "readerMessage": ""
 }
