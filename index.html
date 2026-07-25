@@ -1043,6 +1043,38 @@ function Header({ dark, setDark }) {
 }
 
 /* ─── Home ────────────────────────────────────────────────── */
+// Truncates a title to a set number of words for compact card display,
+// so an unusually long title doesn't blow out a grid card's height.
+function truncateTitle(title, wordLimit = 6) {
+  if (!title) return title;
+  const words = title.trim().split(/\s+/);
+  if (words.length <= wordLimit) return title;
+  return words.slice(0, wordLimit).join(' ') + '…';
+}
+
+// Sorts a tag's books according to its sortOrder setting.
+// 'manual' uses the admin-defined tag.order (array of book ids) — any book
+// not yet in that list (e.g. newly tagged) falls back to the end, newest first.
+function applyTagSort(tagBooks, tag) {
+  const so = tag.sortOrder || 'newest';
+  if (so === 'manual') {
+    const order = tag.order || [];
+    const orderIndex = new Map(order.map((id, i) => [id, i]));
+    const inOrder = tagBooks.filter(b => orderIndex.has(b.id))
+      .sort((a, z) => orderIndex.get(a.id) - orderIndex.get(z.id));
+    const rest = tagBooks.filter(b => !orderIndex.has(b.id))
+      .sort((a, z) => Number(z.id) - Number(a.id));
+    return [...inOrder, ...rest];
+  }
+  let sorted = [...tagBooks];
+  if (so === 'newest')  sorted.sort((a, z) => Number(z.id) - Number(a.id));
+  if (so === 'oldest')  sorted.sort((a, z) => Number(a.id) - Number(z.id));
+  if (so === 'updated') sorted.sort((a, z) => (z.chapters||[]).length - (a.chapters||[]).length);
+  if (so === 'alpha')   sorted.sort((a, z) => a.title.localeCompare(z.title));
+  if (so === 'alpha-z') sorted.sort((a, z) => z.title.localeCompare(a.title));
+  return sorted;
+}
+
 function Home({ data, remoteLoaded }) {
   // Track site visit
   React.useEffect(() => {
@@ -1075,12 +1107,7 @@ function Home({ data, remoteLoaded }) {
     const tag = (data.tags || []).find(t => t.id === slug);
     if (tag) {
       let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
-      const so = tag.sortOrder || 'newest';
-      if (so === 'newest')  tagBooks = [...tagBooks].sort((a, z) => Number(z.id) - Number(a.id));
-      if (so === 'oldest')  tagBooks = [...tagBooks].sort((a, z) => Number(a.id) - Number(z.id));
-      if (so === 'updated') tagBooks = [...tagBooks].sort((a, z) => (z.chapters||[]).length - (a.chapters||[]).length);
-      if (so === 'alpha')   tagBooks = [...tagBooks].sort((a, z) => a.title.localeCompare(z.title));
-      if (so === 'alpha-z') tagBooks = [...tagBooks].sort((a, z) => z.title.localeCompare(a.title));
+      tagBooks = applyTagSort(tagBooks, tag);
       return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} />;
     }
     return <MoreBooksPage books={section(slug)} title={labelMap[slug] || slug} status={slug} />;
@@ -1114,12 +1141,7 @@ function Home({ data, remoteLoaded }) {
           if (!tag) return null;
           let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
           if (!tagBooks.length) return null;
-          const so = tag.sortOrder || 'newest';
-          if (so === 'newest')  tagBooks = [...tagBooks].sort((a, z) => Number(z.id) - Number(a.id));
-          if (so === 'oldest')  tagBooks = [...tagBooks].sort((a, z) => Number(a.id) - Number(z.id));
-          if (so === 'updated') tagBooks = [...tagBooks].sort((a, z) => (z.chapters||[]).length - (a.chapters||[]).length);
-          if (so === 'alpha')   tagBooks = [...tagBooks].sort((a, z) => a.title.localeCompare(z.title));
-          if (so === 'alpha-z') tagBooks = [...tagBooks].sort((a, z) => z.title.localeCompare(a.title));
+          tagBooks = applyTagSort(tagBooks, tag);
           return <BookSection key={tag.id} title={tag.name} books={tagBooks} status={tag.id} />;
         }
         return null;
@@ -1179,11 +1201,53 @@ function MoreBooksPage({ books, title, status }) {
           }
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 20 }}>
-        {sorted.map(b => <BookCard key={b.id} b={b} />)}
+      <div>
+        {sorted.map(b => <BookListRow key={b.id} b={b} />)}
       </div>
       {!sorted.length && <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 60 }}>No books in this section yet.</p>}
     </div>
+  );
+}
+
+/* ─── Book List Row (used on "More Books" pages) ────────────
+   Thumbnail cover on the left, title + synopsis snippet + meta on the right —
+   modelled after list layouts like MegaNovel's, instead of a grid of tiles. */
+function BookListRow({ b }) {
+  const chapterCount = (b.chapters || []).length;
+  return (
+    <a href={`#/book/${b.id}`}
+      style={{
+        display: 'flex',
+        gap: 14,
+        padding: '14px 4px',
+        borderBottom: '1px solid var(--ink-border)',
+        textDecoration: 'none',
+        color: 'var(--ink-text)',
+        alignItems: 'flex-start',
+      }}>
+      {b.cover
+        ? <img src={b.cover} style={{ width: 72, height: 100, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+        : <div style={{ width: 72, height: 100, borderRadius: 8, background: 'var(--ink-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 26 }}>📖</span>
+          </div>
+      }
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, lineHeight: 1.3 }}>{b.title}</h3>
+        {b.synopsis && (
+          <p style={{
+            fontSize: 13, color: 'var(--ink-muted)', lineHeight: 1.5, marginBottom: 6,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
+            {b.synopsis}
+          </p>
+        )}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className={`badge badge-${b.status}`} style={{ fontSize: 11 }}>{b.status}</span>
+          {b.author && <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{b.author}</span>}
+          {chapterCount > 0 && <span style={{ fontSize: 12, color: 'var(--ink-muted)', fontWeight: 600 }}>Chapter {chapterCount}</span>}
+        </div>
+      </div>
+    </a>
   );
 }
 
@@ -1214,7 +1278,7 @@ function BookCard({ b }) {
         <div style={{ marginBottom: 4 }}>
           <span className={`badge badge-${b.status}`}>{b.status}</span>
         </div>
-        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{b.title}</h3>
+        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }} title={b.title}>{truncateTitle(b.title)}</h3>
         <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: chapterCount ? 4 : 0 }}>{b.author}</p>
         {chapterCount > 0 &&
           <p style={{ fontSize: 12, color: 'var(--ink-muted)', fontWeight: 600 }}>Chapter {chapterCount}</p>
@@ -2175,6 +2239,10 @@ function TagsManager({ data, setData }) {
     setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, sortOrder } : t) });
   }
 
+  function updateTagOrder(id, order) {
+    setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, order } : t) });
+  }
+
   return (
     <div>
       <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6, color: 'var(--ink-text)' }}>🏷 Front-Page Tags</h3>
@@ -2244,7 +2312,7 @@ function TagsManager({ data, setData }) {
           {tags.map(tag => {
             const taggedBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id));
             return (
-              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} />
+              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} onUpdateOrder={updateTagOrder} />
             );
           })}
         </div>
@@ -2253,9 +2321,11 @@ function TagsManager({ data, setData }) {
   );
 }
 
-function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort }) {
+function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOrder }) {
   const [editing, setEditing] = React.useState(false);
   const [name, setName] = React.useState(tag.name);
+  const [dragIdx, setDragIdx] = React.useState(null);
+  const [dragOver, setDragOver] = React.useState(null);
 
   function save() {
     if (name.trim()) onRename(tag.id, name.trim());
@@ -2268,8 +2338,37 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort }) {
     { value: 'updated', label: '🔄 Most Chapters First' },
     { value: 'alpha',   label: '🔤 A → Z' },
     { value: 'alpha-z', label: '🔤 Z → A' },
+    { value: 'manual',  label: '✋ Custom Order' },
   ];
   const currentSort = tag.sortOrder || 'newest';
+
+  // Ordered list of books for the manual-reorder UI: start from tag.order,
+  // then append any tagged books that aren't in it yet (newly tagged books).
+  const savedOrder = tag.order || [];
+  const orderedBooks = [
+    ...savedOrder.map(id => taggedBooks.find(b => b.id === id)).filter(Boolean),
+    ...taggedBooks.filter(b => !savedOrder.includes(b.id)),
+  ];
+
+  function moveBook(from, to) {
+    if (to < 0 || to >= orderedBooks.length) return;
+    const next = [...orderedBooks];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onUpdateOrder(tag.id, next.map(b => b.id));
+  }
+  function onBookDragStart(e, i) { setDragIdx(i); e.dataTransfer.effectAllowed = 'move'; }
+  function onBookDragOver(e, i) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOver(i); }
+  function onBookDrop(e, i) {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === i) { setDragIdx(null); setDragOver(null); return; }
+    const next = [...orderedBooks];
+    const [item] = next.splice(dragIdx, 1);
+    next.splice(i, 0, item);
+    onUpdateOrder(tag.id, next.map(b => b.id));
+    setDragIdx(null); setDragOver(null);
+  }
+  function onBookDragEnd() { setDragIdx(null); setDragOver(null); }
 
   return (
     <div className="collection-card" style={{ marginBottom: 10 }}>
@@ -2322,15 +2421,56 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort }) {
         </div>
       </div>
 
-      {taggedBooks.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-          {taggedBooks.map(b => (
-            <span key={b.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ink-bg)', border: '1px solid var(--ink-border)', borderRadius: 8, padding: '3px 10px', fontSize: 12 }}>
-              {b.cover && <img src={b.cover} style={{ width: 14, height: 20, objectFit: 'cover', borderRadius: 2 }} />}
-              {b.title}
-            </span>
-          ))}
-        </div>
+      {currentSort === 'manual' ? (
+        orderedBooks.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 8, lineHeight: 1.5 }}>
+              Drag rows or use ▲▼ to choose which books show first. The first ones here are what readers see before they have to tap "More".
+            </p>
+            {orderedBooks.map((b, i) => (
+              <div
+                key={b.id}
+                draggable
+                onDragStart={e => onBookDragStart(e, i)}
+                onDragOver={e => onBookDragOver(e, i)}
+                onDrop={e => onBookDrop(e, i)}
+                onDragEnd={onBookDragEnd}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '6px 10px', marginBottom: 4,
+                  border: `2px solid ${dragOver === i ? '#7c3aed' : 'var(--ink-border)'}`,
+                  borderRadius: 8,
+                  background: dragIdx === i ? '#f5f3ff' : 'var(--ink-bg)',
+                  cursor: 'grab',
+                  userSelect: 'none',
+                }}>
+                <span style={{ color: 'var(--ink-muted)', fontSize: 14, flexShrink: 0 }}>⠿</span>
+                <span style={{ fontSize: 11, color: 'var(--ink-muted)', width: 18, flexShrink: 0 }}>{i + 1}</span>
+                {b.cover && <img src={b.cover} style={{ width: 14, height: 20, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />}
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--ink-text)' }}>{b.title}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <button className="btn-ghost" style={{ padding: '1px 6px', fontSize: 10 }}
+                    onClick={() => moveBook(i, i - 1)} disabled={i === 0} title="Move up">▲</button>
+                  <button className="btn-ghost" style={{ padding: '1px 6px', fontSize: 10 }}
+                    onClick={() => moveBook(i, i + 1)} disabled={i === orderedBooks.length - 1} title="Move down">▼</button>
+                </div>
+                <button className="btn-ghost" style={{ padding: '2px 8px', fontSize: 10 }}
+                  onClick={() => moveBook(i, 0)} disabled={i === 0} title="Move to top">⤒ Top</button>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        taggedBooks.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+            {taggedBooks.map(b => (
+              <span key={b.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ink-bg)', border: '1px solid var(--ink-border)', borderRadius: 8, padding: '3px 10px', fontSize: 12 }}>
+                {b.cover && <img src={b.cover} style={{ width: 14, height: 20, objectFit: 'cover', borderRadius: 2 }} />}
+                {b.title}
+              </span>
+            ))}
+          </div>
+        )
       )}
     </div>
   );
