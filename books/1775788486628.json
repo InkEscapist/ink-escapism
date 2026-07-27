@@ -10,8 +10,8 @@
   "frontTags": [
     "tag_1777957464383"
   ],
-  "customBtnUrl": "",
-  "customBtnLabel": "",
+  "customBtnUrl": "https://www.patreon.com/posts/164936541?utm_campaign=postshare_creator&utm_content=android_share",
+  "customBtnLabel": "📥 Full Book",
   "recommendations": [],
   "showPatreonOnLast": false,
   "chapters": [
@@ -217,5 +217,6 @@
     }
   ],
   "cpaGates": 2,
-  "readerMessage": ""
+  "readerMessage": "",
+  "weeklyUpdates": true
 }
