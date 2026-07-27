@@ -409,38 +409,9 @@ async function ghLoadBook(id) {
 }
 
 /* ─── Adsterra Monetization ───────────────────────────────── */
-const ADSTERRA_POPUNDER_SRC = 'https://deeprootedpressure.com/75/a1/9a/75a19a8a91d7a65d76b9f7c062616689.js';
-
-// Loads the Adsterra pop-under script only once per page session (not once
-// per chapter), so navigating between several advanced chapters doesn't
-// repeatedly re-inject/re-trigger the ad script.
-let _popunderLoaded = false;
-function loadPopunderOnce() {
-  if (_popunderLoaded) return;
-  _popunderLoaded = true;
-  const s = document.createElement('script');
-  s.src = ADSTERRA_POPUNDER_SRC;
-  s.async = true;
-  document.body.appendChild(s);
-}
-
-// Once the Adsterra pop-under script has loaded, it attaches its OWN click
-// listener to the whole page to catch the next click and open the ad — and
-// on a hash-based single-page app, that can end up swallowing the click
-// before our own chapter-navigation code gets to run, leaving the reader
-// stuck on the old chapter. To prevent that, we register this listener at
-// page load — BEFORE the Adsterra script ever gets a chance to load —  so
-// ours always runs first on every click and always finishes the actual
-// chapter navigation, no matter what the ad script does afterward.
-document.addEventListener('click', function (e) {
-  const link = e.target.closest && e.target.closest('a[data-chapter-nav]');
-  if (!link) return;
-  const href = link.getAttribute('href');
-  if (!href || !href.startsWith('#')) return;
-  e.preventDefault();
-  if (link.dataset.advanced === '1') loadPopunderOnce();
-  if (window.location.hash !== href) window.location.hash = href;
-}, true); // capture phase — runs before any later-attached listeners, including Adsterra's
+// Pop-under / smart-link ads and the advanced-chapter gate have been
+// removed entirely. Only the slim banner ad at the top of each chapter
+// remains (see AdBanner usage in the reading page).
 
 // Renders an Adsterra banner ad safely inside an isolated
 // iframe (these ad tags use document.write, which would otherwise wipe out
@@ -475,34 +446,6 @@ function AdBanner({ adKey, width, height }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0' }}>
       <div ref={containerRef} style={{ width, height, maxWidth: '100%' }} />
-    </div>
-  );
-}
-
-// Gate shown for advanced chapters. On landing, triggers the Adsterra
-// pop-under (loaded once per page session), shows a short "thank you"
-// loading message for 5 seconds, then reveals the actual chapter content.
-// The reader never leaves the page — the pop-under opens behind the current
-// tab, so there's no redirect/return-detection needed anymore.
-function AdvancedChapterGate({ current, bookId, renderContent }) {
-  const [stage, setStage] = React.useState('loading'); // 'loading' | 'done'
-
-  React.useEffect(() => {
-    setStage('loading');
-    loadPopunderOnce();
-    const t = setTimeout(() => setStage('done'), 5000);
-    return () => clearTimeout(t);
-  }, [current, bookId]);
-
-  if (stage === 'done') return renderContent();
-
-  return (
-    <div style={{ textAlign: 'center', padding: '64px 24px', background: 'var(--ink-card)',
-      borderRadius: 16, border: '1px solid var(--ink-border)', marginTop: 24 }}>
-      <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
-      <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink-text)', lineHeight: 1.6 }}>
-        Thank you for supporting the translator, your advanced chapter is loading...
-      </p>
     </div>
   );
 }
@@ -1020,7 +963,8 @@ function Header({ dark, setDark }) {
       <div className="flex items-center justify-between px-6 py-3" style={{ maxWidth: 900, margin: '0 auto' }}>
         <nav className="flex gap-1">
           <a className="nav-link" href="#">Home</a>
-          <a className="nav-link" href="#/admin">Admin</a>
+          <a className="nav-link" href="#/all-books">All Books</a>
+          <a className="nav-link" href="#/search" title="Search books" aria-label="Search books">🔍</a>
         </nav>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
@@ -1036,6 +980,17 @@ function Header({ dark, setDark }) {
             }}>
             {dark ? '☀ Light' : '☾ Dark'}
           </button>
+          <a href="#/admin" title="Site settings" aria-label="Site settings"
+            style={{
+              textDecoration: 'none',
+              fontSize: 17,
+              opacity: 0.45,
+              padding: '4px 6px',
+              borderRadius: 8,
+              lineHeight: 1,
+            }}>
+            ⚙️
+          </a>
         </div>
       </div>
     </header>
@@ -1159,6 +1114,53 @@ function Home({ data, remoteLoaded }) {
 }
 
 /* ─── More Books Page ─────────────────────────────────────── */
+function SearchPage({ data }) {
+  const [query, setQuery] = React.useState('');
+
+  const results = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return (data.books || [])
+      .filter(b => (b.language || 'en') === 'en')
+      .filter(b =>
+        (b.title || '').toLowerCase().includes(q) ||
+        (b.author || '').toLowerCase().includes(q) ||
+        (b.synopsis || '').toLowerCase().includes(q)
+      );
+  }, [data.books, query]);
+
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
+      <a href="#" style={{ color: 'var(--ink-muted)', fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
+      <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink-text)', marginTop: 20, marginBottom: 16 }}>🔍 Search Books</h2>
+      <input
+        autoFocus
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Search by title or author…"
+        style={{
+          width: '100%', padding: '13px 16px', borderRadius: 10,
+          border: '1px solid var(--ink-border)', fontSize: 16,
+          marginBottom: 24, background: 'var(--ink-card)', color: 'var(--ink-text)'
+        }}
+      />
+      {query.trim() === '' && (
+        <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 40 }}>
+          Start typing to search all books by title or author.
+        </p>
+      )}
+      {query.trim() !== '' && results.length === 0 && (
+        <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 40 }}>
+          No books match "{query}".
+        </p>
+      )}
+      <div>
+        {results.map(b => <BookListRow key={b.id} b={b} />)}
+      </div>
+    </div>
+  );
+}
+
 function MoreBooksPage({ books, title, status }) {
   const [sort, setSort] = React.useState('alpha');
   const canPopularity = status === 'ongoing' || status === 'completed';
@@ -1484,7 +1486,7 @@ function BookPage({ data, setData, remoteLoaded }) {
               const realIdx = newestFirst ? (chapters.length - 1 - displayIdx) : displayIdx;
               return (
                 <a key={realIdx} href={`#/read/${book.id}/${realIdx}`}
-                  data-chapter-nav data-advanced={c.advanced ? '1' : undefined}
+                  data-chapter-nav
                   style={{ textDecoration: 'none', color: 'var(--ink-text)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--ink-border)', fontSize: 14, background: 'var(--ink-card)' }}>
                   {realIdx + 1}. {c.title}
                 </a>
@@ -1803,7 +1805,7 @@ function Reader({ data, setData, remoteLoaded }) {
     }}>
       {/* Prev */}
       <a href={isFirst ? `#/book/${book.id}` : `#/read/${book.id}/${current - 1}`}
-        data-chapter-nav data-advanced={(!isFirst && chapters[current - 1]?.advanced) ? '1' : undefined}
+        data-chapter-nav
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '8px 14px', borderRadius: 8,
@@ -1852,7 +1854,7 @@ function Reader({ data, setData, remoteLoaded }) {
         )
       ) : (
         <a href={`#/read/${book.id}/${current + 1}`}
-          data-chapter-nav data-advanced={chapters[current + 1]?.advanced ? '1' : undefined}
+          data-chapter-nav
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 8,
@@ -1890,7 +1892,7 @@ function Reader({ data, setData, remoteLoaded }) {
           {chapters.map((c, i) => (
             <a key={i}
               href={`#/read/${book.id}/${i}`}
-              data-chapter-nav data-advanced={c.advanced ? '1' : undefined}
+              data-chapter-nav
               onClick={() => setShowIndex(false)}
               style={{
                 display: 'block', padding: '7px 10px', borderRadius: 8,
@@ -1907,36 +1909,16 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
-      {/* Chapter content — Adsterra smart-link gate if advanced, otherwise full content */}
-      {(() => {
-        const chapterBody = () => (
-          <div className="no-select" onContextMenu={e => e.preventDefault()}>
-            <AdBanner adKey="ef35c1eb4fcaa1c63817d8cc572faeee" width={320} height={50} />
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
-              Chapter {current + 1}: {chapter.title}
-            </h2>
-            <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
-              {chapter.content}
-            </div>
-          </div>
-        );
-
-        if (chapter.advanced) {
-          return (
-            <AdvancedChapterGate
-              key={current}
-              current={current}
-              bookId={book.id}
-              renderContent={chapterBody}
-            />
-          );
-        }
-
-        return chapterBody();
-      })()}
-
-      {/* Banner ad — always shown just before the Prev/Next navigation */}
-      <AdBanner adKey="7eebd04377631c55e0fd84d6698abbb3" width={300} height={250} />
+      {/* Chapter content — shown directly, no gating */}
+      <div className="no-select" onContextMenu={e => e.preventDefault()}>
+        <AdBanner adKey="ef35c1eb4fcaa1c63817d8cc572faeee" width={320} height={50} />
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
+          Chapter {current + 1}: {chapter.title}
+        </h2>
+        <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+          {chapter.content}
+        </div>
+      </div>
 
       {/* Weekly Updates tag — last chapter only, sits above the nav buttons */}
       {isLast && book.weeklyUpdates && (
@@ -3233,7 +3215,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   💬 Message to Readers
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 10, lineHeight: 1.5 }}>
-                  Optional message shown on the advanced chapter gate screen. Use this to tell readers when the next update is coming.
+                  Optional note for this book. Not currently shown anywhere on the site — kept here in case you want to use it later.
                 </p>
                 <textarea className="admin-input" rows={3}
                   placeholder="e.g. Next 5 chapters drop this Sunday. See you then!"
@@ -3579,13 +3561,6 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                     value={chapForm.content}
                     onChange={e => setChapForm({ ...chapForm, content: e.target.value })} />
                 </div>
-                <div style={{ marginBottom: 12 }}>
-                  <Toggle
-                    on={chapForm.advanced}
-                    onToggle={() => setChapForm(f => ({ ...f, advanced: !f.advanced }))}
-                    label={chapForm.advanced ? "🔒 Advanced Chapter (requires task to unlock)" : "✅ Regular Chapter (free to read)"}
-                  />
-                </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn-primary" onClick={addChapter} disabled={!chapForm.title.trim()}
                     style={{ opacity: !chapForm.title.trim() ? 0.5 : 1 }}>
@@ -3740,32 +3715,10 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                               🔥 Patreon here
                             </span>
                           }
-                          {c.advanced &&
-                            <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '2px 8px', borderRadius: 99 }}>
-                              🔒 ADV
-                            </span>
-                          }
                         </div>
                       </div>
-                      {/* ADV toggle + Preview + Edit + Delete */}
+                      {/* Preview + Edit + Delete */}
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button
-                          onClick={() => {
-                            const updated = (book.chapters || []).map((ch, idx) =>
-                              idx === i ? { ...ch, advanced: !ch.advanced } : ch
-                            );
-                            updateBook({ chapters: updated });
-                          }}
-                          title={c.advanced ? "Click to mark as free" : "Click to mark as advanced"}
-                          style={{
-                            fontSize: 10, padding: '4px 6px', borderRadius: 6, cursor: 'pointer',
-                            border: '1px solid ' + (c.advanced ? '#d97706' : '#22c55e'),
-                            background: c.advanced ? '#fef3c7' : '#f0fdf4',
-                            color: c.advanced ? '#d97706' : '#16a34a',
-                            fontWeight: 700, minWidth: 34, textAlign: 'center',
-                          }}>
-                          {c.advanced ? 'ADV' : 'FREE'}
-                        </button>
                         <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 7px' }}
                           onClick={() => setPreviewIdx(i)} title="Preview chapter as reader">👁</button>
                         <button className="btn-ghost" style={{ fontSize: 11, padding: '4px 7px' }}
@@ -4315,6 +4268,8 @@ function App() {
   if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} incompleteBookIds={incompleteBookIds} retryLoadMissing={retryLoadMissing} />;
   else if (route.startsWith("#/book/")) page = <BookPage data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/read/")) page = <Reader data={data} setData={setData} remoteLoaded={remoteLoaded} />;
+  else if (route.startsWith("#/all-books")) page = <MoreBooksPage books={(data.books || []).filter(b => (b.language || 'en') === 'en')} title="All Books" status="all" />;
+  else if (route.startsWith("#/search")) page = <SearchPage data={data} />;
   else if (route.startsWith("#/more/")) page = <Home data={data} remoteLoaded={remoteLoaded} />;
   else                                  page = <Home data={data} remoteLoaded={remoteLoaded} />;
 
