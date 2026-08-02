@@ -947,52 +947,85 @@ const DarkCtx = React.createContext(false);
 
 /* ─── Header ──────────────────────────────────────────────── */
 function Header({ dark, setDark }) {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <header style={{ borderBottom: '1px solid var(--ink-border)' }}>
-      <div className="text-center py-10">
-        <h1 className="title-font text-5xl mb-1" style={{ color: 'var(--ink-text)' }}>
-          Ink Escapism
-        </h1>
-        <p style={{ color: 'var(--ink-muted)', fontSize: 22, fontFamily: "'Mrs Saint Delafield', cursive" }}>
-          Escape Into A Fantasy
-        </p>
-      </div>
-      <img src="header-art.jpg"
-           style={{ width: '100%', display: 'block', objectFit: 'contain', maxHeight: '420px', background: 'var(--ink-bg)' }}
-           onError={e => e.target.style.display='none'} />
-      <div className="flex items-center justify-between px-6 py-3" style={{ maxWidth: 900, margin: '0 auto' }}>
-        <nav className="flex gap-1">
-          <a className="nav-link" href="#">Home</a>
-          <a className="nav-link" href="#/all-books">All Books</a>
-          <a className="nav-link" href="#/search" title="Search books" aria-label="Search books">🔍</a>
-        </nav>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setDark(!dark)}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--ink-border)',
-              color: 'var(--ink-text)',
-              borderRadius: 8,
-              padding: '5px 14px',
-              fontSize: 13,
-              cursor: 'pointer'
-            }}>
-            {dark ? '☀ Light' : '☾ Dark'}
-          </button>
-          <a href="#/admin" title="Site settings" aria-label="Site settings"
-            style={{
-              textDecoration: 'none',
-              fontSize: 17,
-              opacity: 0.45,
-              padding: '4px 6px',
-              borderRadius: 8,
-              lineHeight: 1,
-            }}>
-            ⚙️
-          </a>
+      <a href="#" style={{ textDecoration: 'none', display: 'block' }}>
+        <div className="text-center py-10">
+          <h1 className="title-font text-5xl mb-1" style={{ color: 'var(--ink-text)' }}>
+            Ink Escapism
+          </h1>
+          <p style={{ color: 'var(--ink-muted)', fontSize: 22, fontFamily: "'Mrs Saint Delafield', cursive" }}>
+            Escape Into A Fantasy
+          </p>
         </div>
+      </a>
+      <a href="#" style={{ display: 'block' }}>
+        <img src="header-art.jpg"
+             style={{ width: '100%', display: 'block', objectFit: 'contain', maxHeight: '420px', background: 'var(--ink-bg)' }}
+             onError={e => e.target.style.display='none'} />
+      </a>
+
+      {/* Slim top bar: just a hamburger (opens the sidebar) and the dark/light toggle */}
+      <div className="flex items-center justify-between px-6 py-3" style={{ maxWidth: 900, margin: '0 auto' }}>
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+          title="Menu"
+          style={{
+            background: 'transparent', border: '1px solid var(--ink-border)',
+            color: 'var(--ink-text)', borderRadius: 8,
+            padding: '6px 12px', fontSize: 16, cursor: 'pointer', lineHeight: 1,
+          }}>
+          {sidebarOpen ? '✕' : '☰'}
+        </button>
+        <button
+          onClick={() => setDark(!dark)}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--ink-border)',
+            color: 'var(--ink-text)',
+            borderRadius: 8,
+            padding: '5px 14px',
+            fontSize: 13,
+            cursor: 'pointer'
+          }}>
+          {dark ? '☀ Light' : '☾ Dark'}
+        </button>
       </div>
+
+      {/* Backdrop */}
+      {sidebarOpen && (
+        <div onClick={closeSidebar}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            zIndex: 400,
+          }} />
+      )}
+
+      {/* Sidebar */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, bottom: 0, width: 240, maxWidth: '80vw',
+        background: 'var(--ink-bg)', borderRight: '1px solid var(--ink-border)',
+        boxShadow: sidebarOpen ? '4px 0 24px rgba(0,0,0,0.25)' : 'none',
+        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.2s ease',
+        zIndex: 401, padding: '20px 8px', display: 'flex', flexDirection: 'column', gap: 2,
+      }}>
+        <p style={{
+          fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+          color: 'var(--ink-muted)', padding: '0 12px', marginBottom: 10,
+        }}>
+          Menu
+        </p>
+        <a className="nav-link" href="#" onClick={closeSidebar} style={{ padding: '10px 12px', fontSize: 15 }}>Home</a>
+        <a className="nav-link" href="#/all-books" onClick={closeSidebar} style={{ padding: '10px 12px', fontSize: 15 }}>All Books</a>
+        <a className="nav-link" href="#/search" onClick={closeSidebar} style={{ padding: '10px 12px', fontSize: 15 }}>🔍 Search</a>
+        <div style={{ borderTop: '1px solid var(--ink-border)', margin: '10px 4px' }} />
+        <a className="nav-link" href="#/admin" onClick={closeSidebar} style={{ padding: '10px 12px', fontSize: 15 }}>⚙️ Admin</a>
+      </nav>
     </header>
   );
 }
@@ -2987,11 +3020,168 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
   function cancelEdit() { setEditingIdx(null); }
 
 
-  // ── Bulk DOCX import ──────────────────────────────────────
+  // ── Bulk DOCX / EPUB import ──────────────────────────────────────
+
+  // Dynamically load a CDN script once and cache it on window.
+  function loadScriptOnce(globalName, src) {
+    if (window[globalName]) return Promise.resolve();
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  // Shared chapter-detection logic — used for both DOCX (via mammoth's HTML
+  // output) and EPUB (via the concatenated HTML of its spine documents).
+  // Get a node's text with <br> tags converted to real newlines, so a
+  // number and title separated only by a line break (common in EPUBs,
+  // e.g. "<h2><span>Chapter 1</span><br/>Title</h2>") don't get glued
+  // together into one run-on string.
+  function getNodeTextWithBreaks(node) {
+    if (node.nodeType !== 1) return node.textContent; // not an element — nothing to expand
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+    return clone.textContent;
+  }
+
+  function extractChaptersFromHtml(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const nodes = Array.from(doc.body.childNodes);
+
+    // Chapter heading pattern: "Chapter", "Ch.", or "Chapitre" followed by a NUMBER.
+    // Supports both English and French documents. Requires an actual digit
+    // (not just any word) so ordinary prose that happens to start with the
+    // word "Chapter" doesn't get mistaken for a heading.
+    const chapterPattern = /^(chapitre\s*\d+|chapter\s*\d+|ch\.?\s*\d+)\b/i;
+
+    function isChapterHeading(text) {
+      return chapterPattern.test(text.trim());
+    }
+
+    let chapters = [];
+    let current = null;
+
+    // Walk every node — both heading tags AND bold paragraphs (like **Chapter 1: ...**)
+    for (const node of nodes) {
+      const rawText = getNodeTextWithBreaks(node);
+      const text = rawText.trim();
+      if (!text) continue;
+
+      // Flattened (newline-free) version, used for the heading-pattern check
+      const flatText = text.replace(/\n+/g, ' ').trim();
+
+      // Check if this node is a chapter heading:
+      // 1. A heading tag (h1/h2/h3) with "Chapter"/"Chapitre" text
+      // 2. A bold-only paragraph (<strong> wrapping the whole thing)
+      // 3. ANY paragraph that starts with "Chapter N" / "Chapitre N" — catches plain Normal-style lines
+      const isHeadingTag = /^H[123]$/.test(node.nodeName) && isChapterHeading(flatText);
+      const isBoldPara = node.nodeName === 'P' &&
+        node.querySelector('strong') &&
+        node.textContent.trim() === node.querySelector('strong').textContent.trim() &&
+        isChapterHeading(flatText);
+      const isPlainChapterLine = node.nodeName === 'P' && isChapterHeading(flatText);
+
+      if (isHeadingTag || isBoldPara || isPlainChapterLine) {
+        if (current) chapters.push(current);
+
+        // Title extraction, in priority order:
+        // 1. If the number and title sit on separate lines (a <br> in the
+        //    source, e.g. EPUB's "Chapter 1<br/>Title"), the title is
+        //    everything after the first line break.
+        // 2. Otherwise, try to extract an inline title after a separator
+        //    (e.g. "Chapter 1: The Man Arrives" or "Chapter 1 — Title")
+        // 3. Otherwise, the title is just the full heading text (e.g. "Chapter 1")
+        let title = flatText;
+        if (text.includes('\n')) {
+          const parts = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
+          title = parts.length > 1 ? parts.slice(1).join(' ') : (parts[0] || flatText);
+        } else {
+          const afterSep = text.replace(/^(ch(apitre|apter)?\.?\s*[\d\w]+\s*[-:–—]+\s*)/i, '').trim();
+          if (afterSep && afterSep !== text) title = afterSep;
+        }
+
+        // We NEVER look at the next paragraph for the title.
+        current = { title, content: '' };
+
+      } else if (current) {
+        // We're inside a chapter — accumulate content
+        current.content += (current.content ? '\n\n' : '') + flatText;
+      }
+      // If current is still null, we haven't hit the first chapter yet — skip everything
+    }
+    if (current) chapters.push(current);
+
+    // Filter out any chapters with no content (just in case)
+    return chapters.filter(c => c.title);
+  }
+
+  // Convert a .docx file (as ArrayBuffer) to HTML via mammoth.
+  async function docxToHtml(arrayBuffer) {
+    await loadScriptOnce('mammoth', 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+    const result = await window.mammoth.convertToHtml({ arrayBuffer });
+    return result.value;
+  }
+
+  // Convert a .epub file (as ArrayBuffer) to HTML by unzipping it, resolving
+  // the spine order from its OPF manifest, and concatenating each XHTML
+  // content document's body — reused by the same chapter-detection logic.
+  async function epubToHtml(arrayBuffer) {
+    await loadScriptOnce('JSZip', 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const zip = await window.JSZip.loadAsync(arrayBuffer);
+    const xmlParser = new DOMParser();
+
+    // 1. Find the OPF path via META-INF/container.xml
+    const containerXml = await zip.file('META-INF/container.xml').async('string');
+    const containerDoc = xmlParser.parseFromString(containerXml, 'application/xml');
+    const opfPath = containerDoc.querySelector('rootfile').getAttribute('full-path');
+    const opfDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/') + 1) : '';
+
+    // 2. Parse the OPF manifest + spine
+    const opfXml = await zip.file(opfPath).async('string');
+    const opfDoc = xmlParser.parseFromString(opfXml, 'application/xml');
+
+    const manifest = {};
+    opfDoc.querySelectorAll('manifest > item').forEach(item => {
+      manifest[item.getAttribute('id')] = item.getAttribute('href');
+    });
+
+    const spineHrefs = Array.from(opfDoc.querySelectorAll('spine > itemref'))
+      .map(itemref => manifest[itemref.getAttribute('idref')])
+      .filter(Boolean);
+
+    if (!spineHrefs.length) {
+      throw new Error('Could not find a readable spine in this EPUB.');
+    }
+
+    // 3. Read each spine document in order and concatenate their body HTML
+    let combinedHtml = '';
+    for (const href of spineHrefs) {
+      const fullPath = (opfDir + href).replace(/^\/+/, '');
+      const zipFile = zip.file(fullPath);
+      if (!zipFile) continue;
+      const xhtml = await zipFile.async('string');
+      const contentDoc = xmlParser.parseFromString(xhtml, 'application/xhtml+xml');
+      const body = contentDoc.querySelector('body');
+      if (body) combinedHtml += body.innerHTML + '\n';
+    }
+
+    return combinedHtml;
+  }
+
   async function handleDocxUpload(e) {
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
+    const name = file.name.toLowerCase();
+    const isEpub = name.endsWith('.epub');
+    const isDocx = name.endsWith('.docx');
+    if (!isEpub && !isDocx) {
+      alert("Please choose a .docx or .epub file.");
+      return;
+    }
     setDocxImporting(true);
     setDocxPreview(null);
     try {
@@ -3000,82 +3190,18 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
       // which causes the "permission problems" error.
       const arrayBuffer = await file.arrayBuffer();
 
-      // Load mammoth from CDN dynamically if not already loaded
-      if (!window.mammoth) {
-        await new Promise((res, rej) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
-          s.onload = res; s.onerror = rej;
-          document.head.appendChild(s);
-        });
-      }
-
-      const result = await window.mammoth.convertToHtml({ arrayBuffer });
-      const html = result.value;
-
-      // Parse the HTML into a DOM tree to extract headings & paragraphs
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const nodes = Array.from(doc.body.childNodes);
-
-      // Chapter heading pattern: "Chapter", "Ch.", or "Chapitre" followed by a number
-      // Supports both English and French documents
-      const chapterPattern = /^(chapitre\s*[\d\w]+|chapter\s*[\d\w]+|ch\.?\s*\d+)/i;
-
-      function isChapterHeading(text) {
-        return chapterPattern.test(text.trim());
-      }
-
-      let chapters = [];
-      let current = null;
-
-      // Walk every node — both heading tags AND bold paragraphs (like **Chapter 1: ...**)
-      for (const node of nodes) {
-        const text = node.textContent.trim();
-        if (!text) continue;
-
-        // Check if this node is a chapter heading:
-        // 1. A Word heading tag (h1/h2/h3) with "Chapter"/"Chapitre" text
-        // 2. A bold-only paragraph (<strong> wrapping the whole thing)
-        // 3. ANY paragraph that starts with "Chapter N" / "Chapitre N" — catches plain Normal-style lines
-        const isHeadingTag = /^H[123]$/.test(node.nodeName) && isChapterHeading(text);
-        const isBoldPara = node.nodeName === 'P' &&
-          node.querySelector('strong') &&
-          node.textContent.trim() === node.querySelector('strong').textContent.trim() &&
-          isChapterHeading(text);
-        const isPlainChapterLine = node.nodeName === 'P' && isChapterHeading(text);
-
-        if (isHeadingTag || isBoldPara || isPlainChapterLine) {
-          if (current) chapters.push(current);
-
-          // Try to extract an inline title after a separator (e.g. "Chapter 1: The Man Arrives" or "Chapter 1 — Title")
-          const afterSep = text.replace(/^(ch(apitre|apter)?\.?\s*[\d\w]+\s*[-:–—]+\s*)/i, '').trim();
-          const hasInlineTitle = afterSep && afterSep !== text;
-
-          // Title is whatever comes after the separator, OR just the full heading text (e.g. "Chapter 1")
-          // We NEVER look at the next paragraph for the title.
-          current = { title: hasInlineTitle ? afterSep : text, content: '' };
-
-        } else if (current) {
-          // We're inside a chapter — accumulate content
-          current.content += (current.content ? '\n\n' : '') + text;
-        }
-        // If current is still null, we haven't hit the first chapter yet — skip everything
-      }
-      if (current) chapters.push(current);
-
-      // Filter out any chapters with no content (just in case)
-      chapters = chapters.filter(c => c.title);
+      const html = isEpub ? await epubToHtml(arrayBuffer) : await docxToHtml(arrayBuffer);
+      const chapters = extractChaptersFromHtml(html);
 
       if (!chapters.length) {
-        alert("Could not detect any chapters in this document.\n\nMake sure your chapters are labelled 'Chapter 1', 'Chapter 2', etc. — or 'Chapitre 1', 'Chapitre 2' for French documents. Everything before the first chapter — like a title or preface — is automatically skipped.");
+        alert("Could not detect any chapters in this file.\n\nMake sure your chapters are labelled 'Chapter 1', 'Chapter 2', etc. — or 'Chapitre 1', 'Chapitre 2' for French documents. Everything before the first chapter — like a title or preface — is automatically skipped.");
         setDocxImporting(false);
         return;
       }
 
       setDocxPreview({ chapters });
     } catch (err) {
-      alert("Could not read the .docx file: " + err.message);
+      alert(`Could not read the ${isEpub ? '.epub' : '.docx'} file: ` + err.message);
     }
     setDocxImporting(false);
   }
@@ -3581,7 +3707,7 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   + Add Chapter
                 </button>
 
-                {/* ── Bulk .docx import button ── */}
+                {/* ── Bulk .docx / .epub import button ── */}
                 <label style={{
                   background: '#7c3aed', color: '#fff',
                   borderRadius: 8, padding: '6px 14px',
@@ -3591,18 +3717,18 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                   opacity: docxImporting ? 0.7 : 1,
                   border: 'none',
                 }}>
-                  {docxImporting ? '⏳ Reading…' : '📄 Import .docx (Bulk Chapters)'}
+                  {docxImporting ? '⏳ Reading…' : '📄 Import .docx / .epub (Bulk Chapters)'}
                   <input
                     ref={docxInputRef}
                     type="file"
-                    accept=".docx"
+                    accept=".docx,.epub"
                     style={{ display: 'none' }}
                     disabled={docxImporting}
                     onChange={handleDocxUpload}
                   />
                 </label>
                 <div style={{ fontSize: 11, color: 'var(--ink-muted)', marginTop: 2, width: '100%' }}>
-                  Upload a Word .docx file — chapters must be labelled "Chapter 1", "Chapter 2", etc. Everything before the first chapter (title, preface, notes) is automatically ignored.
+                  Upload a Word .docx or EPUB .epub file — chapters must be labelled "Chapter 1", "Chapter 2", etc. Everything before the first chapter (title, preface, notes) is automatically ignored.
                 </div>
               </div>
             )}
