@@ -579,7 +579,24 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1786070012600",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1776443629230",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510744841",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510657287",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510466729",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
         "tag_1780854152356"
       ],
@@ -600,7 +617,20 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1786070139493",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1785935151890",
+          "blurb": ""
+        },
+        {
+          "bookId": "1775788486628",
+          "blurb": ""
+        },
+        {
+          "bookId": "1785934763266",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
         "tag_1780854152356"
       ],
@@ -621,7 +651,20 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1786070222978",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1775788486628",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510466729",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510657287",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
         "tag_1780854152356"
       ],
@@ -642,7 +685,20 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1786070293407",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1784510744841",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784510657287",
+          "blurb": ""
+        },
+        {
+          "bookId": "1785935151890",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
         "tag_1780854152356"
       ],

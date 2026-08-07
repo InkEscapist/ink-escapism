@@ -550,7 +550,20 @@
       "status": "published"
     }
   ],
-  "recommendations": [],
+  "recommendations": [
+    {
+      "bookId": "1775788486628",
+      "blurb": ""
+    },
+    {
+      "bookId": "1784510466729",
+      "blurb": ""
+    },
+    {
+      "bookId": "1784510657287",
+      "blurb": ""
+    }
+  ],
   "frontTags": [
     "tag_1780854152356"
   ],
