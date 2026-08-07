@@ -556,11 +556,19 @@ async function ghSave(data, token) {
   });
 
   // ── Create blobs only for index.json + the books that changed ──
-  const [indexBlobSha, ...changedBlobShas] = await Promise.all([
-    ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2), "index.json"),
-    ...toUpload.map(bc => ghCreateBlob(BASE, headers, bc.content, bc.path))
-  ]);
-  toUpload.forEach((bc, i) => { bc.sha = changedBlobShas[i]; });
+  // Uploaded in small sequential batches (not all at once) so a weak/mobile
+  // connection isn't asked to hold open many large simultaneous requests —
+  // that burst is what was causing "Failed to fetch" / dropped-connection
+  // errors when publishing many changed books at once.
+  const indexBlobSha = await ghCreateBlob(BASE, headers, JSON.stringify(indexData, null, 2), "index.json");
+  const BATCH_SIZE = 3;
+  for (let i = 0; i < toUpload.length; i += BATCH_SIZE) {
+    const batch = toUpload.slice(i, i + BATCH_SIZE);
+    const batchShas = await Promise.all(
+      batch.map(bc => ghCreateBlob(BASE, headers, bc.content, bc.path))
+    );
+    batch.forEach((bc, j) => { bc.sha = batchShas[j]; });
+  }
 
   // ── Build the tree entries — reused shas for unchanged books, fresh shas for changed ones ──
   const treeEntries = [
@@ -1089,16 +1097,16 @@ function Home({ data, remoteLoaded }) {
     // Could be a status or a tag id
     const labelMap = { ongoing: 'Ongoing Translations', completed: 'Completed Translations', upcoming: 'Upcoming Translations' };
     if (labelMap[slug]) {
-      return <MoreBooksPage books={section(slug)} title={labelMap[slug]} status={slug} />;
+      return <MoreBooksPage books={section(slug)} title={labelMap[slug]} status={slug} remoteLoaded={remoteLoaded} />;
     }
     // Tag "more" page
     const tag = (data.tags || []).find(t => t.id === slug);
     if (tag) {
       let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
       tagBooks = applyTagSort(tagBooks, tag);
-      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} />;
+      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} remoteLoaded={remoteLoaded} />;
     }
-    return <MoreBooksPage books={section(slug)} title={labelMap[slug] || slug} status={slug} />;
+    return <MoreBooksPage books={section(slug)} title={labelMap[slug] || slug} status={slug} remoteLoaded={remoteLoaded} />;
   }
 
   // Build ordered layout from pageLayout (set in Tags admin tab).
@@ -1194,7 +1202,7 @@ function SearchPage({ data }) {
   );
 }
 
-function MoreBooksPage({ books, title, status }) {
+function MoreBooksPage({ books, title, status, remoteLoaded }) {
   const [sort, setSort] = React.useState('alpha');
   const canPopularity = status === 'ongoing' || status === 'completed';
 
@@ -1239,7 +1247,13 @@ function MoreBooksPage({ books, title, status }) {
       <div>
         {sorted.map(b => <BookListRow key={b.id} b={b} />)}
       </div>
-      {!sorted.length && <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 60 }}>No books in this section yet.</p>}
+      {!sorted.length && (
+        remoteLoaded
+          ? <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 60 }}>No books in this section yet.</p>
+          : <p style={{ color: 'var(--ink-muted)', textAlign: 'center', marginTop: 60 }}>
+              Loading<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+            </p>
+      )}
     </div>
   );
 }
@@ -4394,7 +4408,7 @@ function App() {
   if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} incompleteBookIds={incompleteBookIds} retryLoadMissing={retryLoadMissing} />;
   else if (route.startsWith("#/book/")) page = <BookPage data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/read/")) page = <Reader data={data} setData={setData} remoteLoaded={remoteLoaded} />;
-  else if (route.startsWith("#/all-books")) page = <MoreBooksPage books={(data.books || []).filter(b => (b.language || 'en') === 'en')} title="All Books" status="all" />;
+  else if (route.startsWith("#/all-books")) page = <MoreBooksPage books={(data.books || []).filter(b => (b.language || 'en') === 'en')} title="All Books" status="all" remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/search")) page = <SearchPage data={data} />;
   else if (route.startsWith("#/more/")) page = <Home data={data} remoteLoaded={remoteLoaded} />;
   else                                  page = <Home data={data} remoteLoaded={remoteLoaded} />;
