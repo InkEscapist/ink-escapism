@@ -12,7 +12,24 @@
   ],
   "customBtnUrl": "",
   "customBtnLabel": "",
-  "recommendations": [],
+  "recommendations": [
+    {
+      "bookId": "1775788486628",
+      "blurb": ""
+    },
+    {
+      "bookId": "1784510657287",
+      "blurb": ""
+    },
+    {
+      "bookId": "1784510744841",
+      "blurb": ""
+    },
+    {
+      "bookId": "1785935151890",
+      "blurb": ""
+    }
+  ],
   "showPatreonOnLast": false,
   "chapters": [
     {
@@ -574,5 +591,8 @@
       "pubDate": "Wed, 10 Jun 2026 04:40:37 GMT"
     }
   ],
-  "archived": true
+  "archived": true,
+  "weeklyUpdates": false,
+  "cpaGates": 2,
+  "readerMessage": ""
 }
