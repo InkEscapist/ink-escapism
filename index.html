@@ -450,6 +450,22 @@ function AdBanner({ adKey, width, height }) {
   );
 }
 
+// Splits chapter text into `numParts` roughly-even chunks at paragraph
+// breaks (never mid-sentence), used to weave ad banners through long
+// chapters on completed books. Falls back gracefully on short chapters.
+function splitChapterText(text, numParts) {
+  if (!text) return [text];
+  let paras = text.split(/\n\s*\n/).filter(p => p.trim() !== '');
+  if (paras.length < numParts) paras = text.split(/\n/).filter(p => p.trim() !== '');
+  if (paras.length <= 1) return [text];
+  const perPart = Math.ceil(paras.length / numParts);
+  const parts = [];
+  for (let i = 0; i < paras.length; i += perPart) {
+    parts.push(paras.slice(i, i + perPart).join('\n\n'));
+  }
+  return parts;
+}
+
 // Reconstruct full data object by merging index + cached book chapters
 function buildFullData(indexData) {
   if (!indexData) return null;
@@ -1542,6 +1558,9 @@ function BookPage({ data, setData, remoteLoaded }) {
           </div>
         </div>
       }
+
+      {/* Other Novels to Try — right under the table of contents */}
+      <AllRecommendations book={book} allBooks={data.books} />
     </div>
   );
 }
@@ -1728,6 +1747,24 @@ function ChapterRecommendation({ book, allBooks, chapterIndex }) {
 }
 
 /* ─── End-of-book all recommendations ────────────────────── */
+function RecommendGridCard({ recBook }) {
+  return (
+    <a href={`#/book/${recBook.id}`} style={{ textDecoration: 'none', color: 'var(--ink-text)', display: 'block' }}>
+      {recBook.cover
+        ? <img src={recBook.cover} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+        : <div style={{ width: '100%', aspectRatio: '3 / 4', background: 'var(--ink-border)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>📖</div>
+      }
+      <div style={{
+        fontWeight: 700, fontSize: 13.5, marginTop: 8, lineHeight: 1.3,
+        overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'
+      }}>
+        {recBook.title}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 2 }}>{recBook.author}</div>
+    </a>
+  );
+}
+
 function AllRecommendations({ book, allBooks }) {
   const recs = (book.recommendations || [])
     .map(r => ({ recBook: allBooks.find(b => b.id === r.bookId), blurb: r.blurb }))
@@ -1746,9 +1783,9 @@ function AllRecommendations({ book, allBooks }) {
       <p style={{ color: 'var(--ink-muted)', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>
         Enjoyed this one? Dive into another story.
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {recs.map(({ recBook, blurb }) => (
-          <RecommendShelfCard key={recBook.id} recBook={recBook} blurb={blurb} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+        {recs.map(({ recBook }) => (
+          <RecommendGridCard key={recBook.id} recBook={recBook} />
         ))}
       </div>
     </div>
@@ -1962,9 +1999,20 @@ function Reader({ data, setData, remoteLoaded }) {
         <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, lineHeight: 1.3 }}>
           Chapter {current + 1}: {chapter.title}
         </h2>
-        <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
-          {chapter.content}
-        </div>
+        {book.status === 'completed' ? (
+          splitChapterText(chapter.content, 4).map((part, i, arr) => (
+            <React.Fragment key={i}>
+              <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+                {part}
+              </div>
+              {i < arr.length - 1 && <AdBanner adKey="ef35c1eb4fcaa1c63817d8cc572faeee" width={320} height={50} />}
+            </React.Fragment>
+          ))
+        ) : (
+          <div style={{ lineHeight: 1.95, fontSize: 16.5, whiteSpace: 'pre-wrap', color: 'var(--ink-text)' }}>
+            {chapter.content}
+          </div>
+        )}
       </div>
 
       {/* Weekly Updates tag — last chapter only, sits above the nav buttons */}
@@ -1982,17 +2030,20 @@ function Reader({ data, setData, remoteLoaded }) {
         </div>
       )}
 
+      {/* Bottom ad banner — before the navigation, every book */}
+      <AdBanner adKey="ef35c1eb4fcaa1c63817d8cc572faeee" width={320} height={50} />
+
       {/* Bottom nav */}
       {navBar(false)}
+
+      {/* All recommendations — last chapter only, right under the nav */}
+      {isLast && <AllRecommendations book={book} allBooks={data.books} />}
 
       {/* Mid-chapter rotating recommendation (all chapters except last) */}
       {!isLast && <ChapterRecommendation book={book} allBooks={data.books} chapterIndex={current} />}
 
       {/* Comments — every chapter */}
       <CommentSection bookId={book.id} chapterIdx={current} />
-
-      {/* All recommendations — last chapter only */}
-      {isLast && <AllRecommendations book={book} allBooks={data.books} />}
     </div>
   );
 }
