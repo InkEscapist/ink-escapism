@@ -571,5 +571,6 @@
   "customBtnLabel": "",
   "customBtnUrl": "",
   "cpaGates": 2,
-  "readerMessage": ""
+  "readerMessage": "",
+  "archived": true
 }

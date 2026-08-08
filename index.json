@@ -572,14 +572,14 @@
         }
       ],
       "frontTags": [
-        "tag_1780854152356",
-        "tag_1777957425566"
+        "tag_1780854152356"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "",
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 415
     },
     {
@@ -618,6 +618,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 253
     },
     {
@@ -652,6 +653,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 272
     },
     {
@@ -686,6 +688,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 108
     },
     {
@@ -720,6 +723,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 180
     },
     {
@@ -754,6 +758,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 85
     },
     {
@@ -792,6 +797,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 171
     },
     {
@@ -830,6 +836,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 244
     },
     {
@@ -860,6 +867,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 30
     },
     {
@@ -898,6 +906,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 57
     },
     {
@@ -924,6 +933,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 114
     },
     {
@@ -954,6 +964,7 @@
       "customBtnUrl": "",
       "cpaGates": 2,
       "readerMessage": "",
+      "archived": true,
       "chapterCount": 63
     }
   ],

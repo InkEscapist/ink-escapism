@@ -2100,12 +2100,12 @@
     }
   ],
   "frontTags": [
-    "tag_1780854152356",
-    "tag_1777957425566"
+    "tag_1780854152356"
   ],
   "weeklyUpdates": false,
   "customBtnLabel": "",
   "customBtnUrl": "",
   "cpaGates": 2,
-  "readerMessage": ""
+  "readerMessage": "",
+  "archived": true
 }
