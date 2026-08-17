@@ -510,11 +510,21 @@ async function ghLoad(fullLoad = false) {
   if (!indexData) return { data: null, failedIds: [] };
   let failedIds = [];
   if (fullLoad) {
-    // Admin needs chapters — load all books in parallel, but track failures.
-    const results = await Promise.all((indexData.books || []).map(async b => {
-      const book = await ghLoadBook(b.id);
-      return { id: b.id, ok: !!book };
-    }));
+    // Admin needs chapters for every book. Loading all of them at once fires
+    // dozens of simultaneous requests at raw.githubusercontent.com, which
+    // triggers GitHub's rate limit (429) and makes everything fail at once.
+    // Load in small batches instead, so we stay under the limit.
+    const BATCH_SIZE = 5;
+    const results = [];
+    const allBooks = indexData.books || [];
+    for (let i = 0; i < allBooks.length; i += BATCH_SIZE) {
+      const batch = allBooks.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(batch.map(async b => {
+        const book = await ghLoadBook(b.id);
+        return { id: b.id, ok: !!book };
+      }));
+      results.push(...batchResults);
+    }
     failedIds = results.filter(r => !r.ok).map(r => r.id);
   }
   return { data: buildFullData(indexData), failedIds };
