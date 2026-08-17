@@ -379,6 +379,13 @@ const GH_BOOKS_RAW  = (id) => `${GH_RAW_BASE}/books/${id}.json`;
 const GH_INDEX_API  = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/index.json`;
 const GH_BOOKS_PATH = (id) => `books/${id}.json`;
 
+// jsDelivr CDN fallback — used only if raw.githubusercontent.com fails
+// (e.g. GitHub rate-limiting/throttling that domain). Separate network,
+// so a raw.githubusercontent.com outage doesn't take the whole site down.
+const GH_JSDELIVR_BASE = `https://cdn.jsdelivr.net/gh/${GH_USER}/${GH_REPO}@main`;
+const GH_INDEX_JSDELIVR = `${GH_JSDELIVR_BASE}/index.json`;
+const GH_BOOKS_JSDELIVR = (id) => `${GH_JSDELIVR_BASE}/books/${id}.json`;
+
 // In-memory cache of fully-loaded book data (with chapters)
 const _bookCache = {};
 
@@ -386,9 +393,14 @@ const _bookCache = {};
 async function ghLoadIndex() {
   try {
     const res = await fetch(GH_INDEX_RAW + "?t=" + Date.now());
-    if (!res.ok) return null;
-    return await res.json();
-  } catch { return null; }
+    if (res.ok) return await res.json();
+  } catch {}
+  // raw.githubusercontent.com failed — retry through jsDelivr's CDN
+  try {
+    const res2 = await fetch(GH_INDEX_JSDELIVR + "?t=" + Date.now());
+    if (res2.ok) return await res2.json();
+  } catch {}
+  return null;
 }
 
 // Load a single book's full data (with chapters), with cache
@@ -399,13 +411,26 @@ async function ghLoadBook(id) {
   if (_bookCache[id]) return _bookCache[id];
   try {
     const res = await fetch(GH_BOOKS_RAW(id) + "?t=" + Date.now());
-    if (!res.ok) return null;
-    const text = await res.text();
-    const book = JSON.parse(text);
-    _bookCache[id] = book;
-    _bookSnapshot[id] = text;
-    return book;
-  } catch { return null; }
+    if (res.ok) {
+      const text = await res.text();
+      const book = JSON.parse(text);
+      _bookCache[id] = book;
+      _bookSnapshot[id] = text;
+      return book;
+    }
+  } catch {}
+  // raw.githubusercontent.com failed — retry through jsDelivr's CDN
+  try {
+    const res2 = await fetch(GH_BOOKS_JSDELIVR(id) + "?t=" + Date.now());
+    if (res2.ok) {
+      const text2 = await res2.text();
+      const book2 = JSON.parse(text2);
+      _bookCache[id] = book2;
+      _bookSnapshot[id] = text2;
+      return book2;
+    }
+  } catch {}
+  return null;
 }
 
 /* ─── Adsterra Monetization ───────────────────────────────── */
