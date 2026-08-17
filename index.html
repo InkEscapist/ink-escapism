@@ -379,13 +379,6 @@ const GH_BOOKS_RAW  = (id) => `${GH_RAW_BASE}/books/${id}.json`;
 const GH_INDEX_API  = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/index.json`;
 const GH_BOOKS_PATH = (id) => `books/${id}.json`;
 
-// jsDelivr CDN fallback — used only if raw.githubusercontent.com fails
-// (e.g. GitHub rate-limiting/throttling that domain). Separate network,
-// so a raw.githubusercontent.com outage doesn't take the whole site down.
-const GH_JSDELIVR_BASE = `https://cdn.jsdelivr.net/gh/${GH_USER}/${GH_REPO}@main`;
-const GH_INDEX_JSDELIVR = `${GH_JSDELIVR_BASE}/index.json`;
-const GH_BOOKS_JSDELIVR = (id) => `${GH_JSDELIVR_BASE}/books/${id}.json`;
-
 // In-memory cache of fully-loaded book data (with chapters)
 const _bookCache = {};
 
@@ -393,14 +386,9 @@ const _bookCache = {};
 async function ghLoadIndex() {
   try {
     const res = await fetch(GH_INDEX_RAW + "?t=" + Date.now());
-    if (res.ok) return await res.json();
-  } catch {}
-  // raw.githubusercontent.com failed — retry through jsDelivr's CDN
-  try {
-    const res2 = await fetch(GH_INDEX_JSDELIVR + "?t=" + Date.now());
-    if (res2.ok) return await res2.json();
-  } catch {}
-  return null;
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
 }
 
 // Load a single book's full data (with chapters), with cache
@@ -411,26 +399,13 @@ async function ghLoadBook(id) {
   if (_bookCache[id]) return _bookCache[id];
   try {
     const res = await fetch(GH_BOOKS_RAW(id) + "?t=" + Date.now());
-    if (res.ok) {
-      const text = await res.text();
-      const book = JSON.parse(text);
-      _bookCache[id] = book;
-      _bookSnapshot[id] = text;
-      return book;
-    }
-  } catch {}
-  // raw.githubusercontent.com failed — retry through jsDelivr's CDN
-  try {
-    const res2 = await fetch(GH_BOOKS_JSDELIVR(id) + "?t=" + Date.now());
-    if (res2.ok) {
-      const text2 = await res2.text();
-      const book2 = JSON.parse(text2);
-      _bookCache[id] = book2;
-      _bookSnapshot[id] = text2;
-      return book2;
-    }
-  } catch {}
-  return null;
+    if (!res.ok) return null;
+    const text = await res.text();
+    const book = JSON.parse(text);
+    _bookCache[id] = book;
+    _bookSnapshot[id] = text;
+    return book;
+  } catch { return null; }
 }
 
 /* ─── Adsterra Monetization ───────────────────────────────── */
@@ -510,21 +485,11 @@ async function ghLoad(fullLoad = false) {
   if (!indexData) return { data: null, failedIds: [] };
   let failedIds = [];
   if (fullLoad) {
-    // Admin needs chapters for every book. Loading all of them at once fires
-    // dozens of simultaneous requests at raw.githubusercontent.com, which
-    // triggers GitHub's rate limit (429) and makes everything fail at once.
-    // Load in small batches instead, so we stay under the limit.
-    const BATCH_SIZE = 5;
-    const results = [];
-    const allBooks = indexData.books || [];
-    for (let i = 0; i < allBooks.length; i += BATCH_SIZE) {
-      const batch = allBooks.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.all(batch.map(async b => {
-        const book = await ghLoadBook(b.id);
-        return { id: b.id, ok: !!book };
-      }));
-      results.push(...batchResults);
-    }
+    // Admin needs chapters — load all books in parallel, but track failures.
+    const results = await Promise.all((indexData.books || []).map(async b => {
+      const book = await ghLoadBook(b.id);
+      return { id: b.id, ok: !!book };
+    }));
     failedIds = results.filter(r => !r.ok).map(r => r.id);
   }
   return { data: buildFullData(indexData), failedIds };
@@ -874,88 +839,49 @@ function useStorage() {
   // during admin load). While this is non-empty, publishing is dangerous —
   // it would overwrite those books' real chapters on GitHub with nothing.
   const [incompleteBookIds, setIncompleteBookIds] = React.useState([]);
-  // True when BOTH raw.githubusercontent.com and the jsDelivr fallback failed
-  // to return index.json at all — i.e. this isn't "no books yet", it's a
-  // real fetch failure (GitHub outage, network block, etc). Drives the
-  // "Site Under Repair" screen instead of a misleading "no books" message.
-  const [loadFailed, setLoadFailed] = React.useState(false);
-  // Timestamp (ms) of when a fetch failure was first observed this session,
-  // kept in localStorage so the repair countdown survives page reloads.
-  function getRepairStart() {
-    try {
-      let t = localStorage.getItem("ink-repair-start");
-      if (!t) { t = String(Date.now()); localStorage.setItem("ink-repair-start", t); }
-      return Number(t);
-    } catch { return Date.now(); }
-  }
-  function clearRepairStart() {
-    try { localStorage.removeItem("ink-repair-start"); } catch {}
-  }
 
-  async function loadOnce() {
-    const isAdmin = location.hash.startsWith('#/admin');
+  React.useEffect(() => {
+    async function init() {
+      const isAdmin = location.hash.startsWith('#/admin');
 
-    if (isAdmin) {
-      // ── ADMIN: load index + all book files (chapters needed for editing) ──
-      setSyncMsg("⏳ Loading from GitHub…");
-      try {
-        const { data: remote, failedIds } = await ghLoad(true);
-        if (remote && remote.books) {
-          setDataRaw(remote);
-          setIncompleteBookIds(failedIds);
-          setLoadFailed(false);
-          clearRepairStart();
-          setSyncMsg(failedIds.length
-            ? `⚠️ ${failedIds.length} book(s) failed to load — do not publish yet.`
-            : "✅ Books loaded from GitHub!");
-        } else {
-          setLoadFailed(true);
-          getRepairStart();
-          setSyncMsg("ℹ️ Could not reach GitHub — this looks like an outage, not missing data.");
+      if (isAdmin) {
+        // ── ADMIN: load index + all book files (chapters needed for editing) ──
+        setSyncMsg("⏳ Loading from GitHub…");
+        try {
+          const { data: remote, failedIds } = await ghLoad(true);
+          if (remote && remote.books) {
+            setDataRaw(remote);
+            setIncompleteBookIds(failedIds);
+            setSyncMsg(failedIds.length
+              ? `⚠️ ${failedIds.length} book(s) failed to load — do not publish yet.`
+              : "✅ Books loaded from GitHub!");
+          } else {
+            setSyncMsg("ℹ️ No books found — add some below!");
+          }
+        } catch {
+          setSyncMsg("⚠️ Could not reach GitHub. Check connection before publishing.");
         }
-      } catch {
-        setLoadFailed(true);
-        getRepairStart();
-        setSyncMsg("⚠️ Could not reach GitHub. Check connection before publishing.");
-      }
-      setRemoteLoaded(true);
+        setRemoteLoaded(true);
 
-    } else {
-      // ── READER: load index.json only (fast, no chapters needed for listing) ──
-      try {
-        const { data: remote } = await ghLoad(false);
-        if (remote && remote.books) {
-          setDataRaw(remote);
-          setLoadFailed(false);
-          clearRepairStart();
-        } else {
-          setLoadFailed(true);
-          getRepairStart();
+      } else {
+        // ── READER: load index.json only (fast, no chapters needed for listing) ──
+        try {
+          const { data: remote } = await ghLoad(false);
+          if (remote && remote.books) {
+            setDataRaw(remote);
+          }
+        } catch {
+          // GitHub unreachable
         }
-      } catch {
-        // GitHub unreachable
-        setLoadFailed(true);
-        getRepairStart();
+        setRemoteLoaded(true);
+        setSyncMsg("");
       }
-      setRemoteLoaded(true);
-      setSyncMsg("");
+
+      setSynced(true);
+      setTimeout(() => setSyncMsg(""), 3500);
     }
-
-    setSynced(true);
-    setTimeout(() => setSyncMsg(""), 3500);
-  }
-
-  React.useEffect(() => {
-    loadOnce();
+    init();
   }, []);
-
-  // While the load has failed, keep quietly retrying in the background so the
-  // site recovers on its own the moment GitHub comes back — no reload needed.
-  React.useEffect(() => {
-    if (!loadFailed) return;
-    const id = setInterval(() => { loadOnce(); }, 90 * 1000);
-    return () => clearInterval(id);
-  }, [loadFailed]);
 
   async function setData(newData) {
     setDataRaw(newData);
@@ -1037,7 +963,7 @@ function useStorage() {
     setTimeout(() => setSyncMsg(""), 5000);
   }
 
-  return [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing, loadFailed];
+  return [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing];
 }
 
 /* ─── Dark mode context ───────────────────────────────────── */
@@ -4518,75 +4444,8 @@ function Admin({ data, setData, pushToGitHub, incompleteBookIds, retryLoadMissin
 
 
 /* ─── App Shell ───────────────────────────────────────────── */
-/* ─── Site Under Repair ────────────────────────────────────
-   Shown instead of "no books" whenever the initial fetch of index.json
-   fails completely (both raw.githubusercontent.com and the jsDelivr
-   fallback) — e.g. a GitHub outage — so readers don't mistake a
-   temporary fetch failure for an empty/dead site. Auto-clears itself
-   as soon as a background retry succeeds (see loadOnce/useStorage). */
-function SiteUnderRepair({ isAdmin }) {
-  const [now, setNow] = React.useState(Date.now());
-
-  React.useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  let startedAt = now;
-  try {
-    const stored = localStorage.getItem("ink-repair-start");
-    if (stored) startedAt = Number(stored);
-  } catch {}
-
-  const REPAIR_WINDOW_MS = 12 * 60 * 60 * 1000; // 12 hours
-  const remainingMs = Math.max(0, (startedAt + REPAIR_WINDOW_MS) - now);
-  const hours = Math.floor(remainingMs / 3600000);
-  const minutes = Math.floor((remainingMs % 3600000) / 60000);
-  const seconds = Math.floor((remainingMs % 60000) / 1000);
-  const pad = n => String(n).padStart(2, '0');
-
-  return (
-    <div style={{
-      minHeight: '70vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center', textAlign: 'center',
-      padding: '40px 20px'
-    }}>
-      <div style={{ fontSize: 44, marginBottom: 10 }}>🛠️</div>
-      <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 10px', color: 'var(--ink-text)' }}>
-        Site Under Repair
-      </h1>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 15, maxWidth: 420, lineHeight: 1.5, margin: '0 0 6px' }}>
-        We're having trouble loading books right now — this looks like an
-        outage on GitHub's end, not a problem with your device or browser.
-        Nothing has been lost. We're on it.
-      </p>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 13, maxWidth: 420, lineHeight: 1.5, margin: '0 0 24px' }}>
-        This page will recover automatically — no need to keep refreshing.
-      </p>
-      <div style={{
-        fontFamily: 'monospace', fontSize: 32, fontWeight: 700,
-        letterSpacing: 2, color: 'var(--ink-text)',
-        background: 'var(--ink-card)', border: '1px solid var(--ink-border)',
-        borderRadius: 12, padding: '14px 26px', marginBottom: 8
-      }}>
-        {remainingMs > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : "00:00:00"}
-      </div>
-      <p style={{ color: 'var(--ink-muted)', fontSize: 12, margin: 0 }}>
-        Estimated time until this should be resolved
-      </p>
-      {isAdmin && (
-        <p style={{ color: 'var(--ink-muted)', fontSize: 12, marginTop: 24, maxWidth: 420 }}>
-          Admin note: index.json failed to load from both raw.githubusercontent.com
-          and the jsDelivr fallback. Check githubstatus.com — if GitHub itself is
-          down, there's nothing to fix here; this will clear on its own.
-        </p>
-      )}
-    </div>
-  );
-}
-
 function App() {
-  const [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing, loadFailed] = useStorage();
+  const [data, setData, pushToGitHub, syncMsg, synced, remoteLoaded, incompleteBookIds, retryLoadMissing] = useStorage();
   const [dark, setDark] = React.useState(false);
   const [route, setRoute] = React.useState(location.hash);
 
@@ -4596,12 +4455,8 @@ function App() {
     return () => window.removeEventListener('hashchange', handler);
   }, []);
 
-  const noBooksAtAll = !(data.books || []).length;
-  const showRepairScreen = synced && remoteLoaded && loadFailed && noBooksAtAll;
-
   let page;
-  if (showRepairScreen)                 page = <SiteUnderRepair isAdmin={route.startsWith("#/admin")} />;
-  else if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} incompleteBookIds={incompleteBookIds} retryLoadMissing={retryLoadMissing} />;
+  if (route.startsWith("#/admin"))      page = <Admin data={data} setData={setData} pushToGitHub={pushToGitHub} incompleteBookIds={incompleteBookIds} retryLoadMissing={retryLoadMissing} />;
   else if (route.startsWith("#/book/")) page = <BookPage data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/read/")) page = <Reader data={data} setData={setData} remoteLoaded={remoteLoaded} />;
   else if (route.startsWith("#/all-books")) page = <MoreBooksPage books={(data.books || []).filter(b => (b.language || 'en') === 'en')} title="All Books" status="all" remoteLoaded={remoteLoaded} />;
@@ -4612,7 +4467,7 @@ function App() {
   return (
     <div className={dark ? 'dark-mode' : ''} style={{ minHeight: '100vh', background: 'var(--ink-bg)', color: 'var(--ink-text)' }}>
       <Header dark={dark} setDark={setDark} />
-      {syncMsg && !showRepairScreen ? (
+      {syncMsg ? (
         <div style={{
           position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
           background: '#111', color: '#fff', padding: '10px 20px',
