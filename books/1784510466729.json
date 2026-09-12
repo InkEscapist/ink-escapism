@@ -210,7 +210,20 @@
       "status": "published"
     }
   ],
-  "recommendations": [],
+  "recommendations": [
+    {
+      "bookId": "1788446279999",
+      "blurb": "Another reborn emperor. Bro was busy acting like a sage worried about what history would write about him till he fell and only the vicious concubine stayed by his side, so reborn, he don't give a f*ck. History could drown him if they like"
+    },
+    {
+      "bookId": "1788853769089",
+      "blurb": "Lazy girl transmigrated into harem and decides to seduce the emperor so she can be lazier."
+    },
+    {
+      "bookId": "1784510744841",
+      "blurb": "FL's about to marry into money, gets summoned to the palace as a concubine instead. ML is the emperor so he has a harem but bro is cold asf."
+    }
+  ],
   "frontTags": [
     "tag_1777957425566",
     "tag_1777957464383"

@@ -33,7 +33,7 @@
       "cpaGates": 2,
       "readerMessage": "",
       "weeklyUpdates": true,
-      "chapterCount": 160
+      "chapterCount": 168
     },
     {
       "id": "1780850437153",
@@ -120,7 +120,7 @@
       "cpaGates": 3,
       "weeklyUpdates": false,
       "readerMessage": "",
-      "chapterCount": 142
+      "chapterCount": 147
     },
     {
       "id": "1776443629230",
@@ -154,7 +154,7 @@
       "cpaGates": 3,
       "weeklyUpdates": true,
       "readerMessage": "",
-      "chapterCount": 180
+      "chapterCount": 191
     },
     {
       "id": "1777691358789",
@@ -213,7 +213,7 @@
       "cpaGates": 2,
       "readerMessage": "",
       "weeklyUpdates": true,
-      "chapterCount": 70
+      "chapterCount": 75
     },
     {
       "id": "1780855707303",
@@ -298,7 +298,7 @@
       "cpaGates": 2,
       "readerMessage": "",
       "weeklyUpdates": true,
-      "chapterCount": 47
+      "chapterCount": 50
     },
     {
       "title": "Secret Crush Loses Memory and Becomes My Boyfriend",
@@ -319,7 +319,7 @@
       "cpaGates": 2,
       "readerMessage": "",
       "weeklyUpdates": true,
-      "chapterCount": 44
+      "chapterCount": 48
     },
     {
       "title": "The Big Boss’s Little Wife ",
@@ -352,7 +352,20 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1784510466729",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1788446279999",
+          "blurb": "Another reborn emperor. Bro was busy acting like a sage worried about what history would write about him till he fell and only the vicious concubine stayed by his side, so reborn, he don't give a f*ck. History could drown him if they like"
+        },
+        {
+          "bookId": "1788853769089",
+          "blurb": "Lazy girl transmigrated into harem and decides to seduce the emperor so she can be lazier."
+        },
+        {
+          "bookId": "1784510744841",
+          "blurb": "FL's about to marry into money, gets summoned to the palace as a concubine instead. ML is the emperor so he has a harem but bro is cold asf."
+        }
+      ],
       "frontTags": [
         "tag_1777957425566",
         "tag_1777957464383"
