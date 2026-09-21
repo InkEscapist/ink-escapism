@@ -135,7 +135,24 @@
       "status": "published"
     }
   ],
-  "recommendations": [],
+  "recommendations": [
+    {
+      "bookId": "1787444306034",
+      "blurb": ""
+    },
+    {
+      "bookId": "1776443629230",
+      "blurb": ""
+    },
+    {
+      "bookId": "1784511087465",
+      "blurb": ""
+    },
+    {
+      "bookId": "1788446279999",
+      "blurb": ""
+    }
+  ],
   "frontTags": [
     "tag_1777957425566",
     "tag_1777957464383"
