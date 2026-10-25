@@ -237,20 +237,24 @@
   ],
   "recommendations": [
     {
-      "bookId": "1784510744841",
+      "bookId": "1784510100828",
       "blurb": ""
     },
     {
-      "bookId": "1775788486628",
+      "bookId": "1788853430346",
       "blurb": ""
     },
     {
-      "bookId": "1785935151890",
+      "bookId": "1792921852276",
+      "blurb": ""
+    },
+    {
+      "bookId": "1787444669170",
       "blurb": ""
     }
   ],
   "frontTags": [
-    "tag_1777957425566"
+    "tag_1792924574206"
   ],
   "weeklyUpdates": false,
   "customBtnLabel": "📥 Full Book",

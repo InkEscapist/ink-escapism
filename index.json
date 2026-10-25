@@ -291,11 +291,25 @@
       "id": "1784510100828",
       "recommendations": [
         {
-          "bookId": "1777835439851",
+          "bookId": "1792921852276",
+          "blurb": ""
+        },
+        {
+          "bookId": "1787444534710",
+          "blurb": ""
+        },
+        {
+          "bookId": "1787444669170",
+          "blurb": ""
+        },
+        {
+          "bookId": "1788853430346",
           "blurb": ""
         }
       ],
-      "frontTags": [],
+      "frontTags": [
+        "tag_1792924574206"
+      ],
       "customBtnLabel": "📥 Full Book",
       "customBtnUrl": "https://www.patreon.com/posts/164299722?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
@@ -1007,20 +1021,24 @@
       "id": "1787444534710",
       "recommendations": [
         {
-          "bookId": "1784510744841",
+          "bookId": "1784510100828",
           "blurb": ""
         },
         {
-          "bookId": "1775788486628",
+          "bookId": "1788853430346",
           "blurb": ""
         },
         {
-          "bookId": "1785935151890",
+          "bookId": "1792921852276",
+          "blurb": ""
+        },
+        {
+          "bookId": "1787444669170",
           "blurb": ""
         }
       ],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1792924574206"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1131,9 +1149,23 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1788853430346",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1784510100828",
+          "blurb": ""
+        },
+        {
+          "bookId": "1787444534710",
+          "blurb": ""
+        },
+        {
+          "bookId": "1792921852276",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1777957425566",
+        "tag_1792924574206"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1461,7 +1493,8 @@
         }
       ],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1777957425566",
+        "tag_1792924574206"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1716,6 +1749,10 @@
         "1784510257239",
         "1784510386444"
       ]
+    },
+    {
+      "id": "tag_1792924574206",
+      "name": "Switching grooms"
     }
   ],
   "adminCollections": [
@@ -1748,6 +1785,10 @@
     {
       "type": "tag",
       "id": "tag_1777957464383"
+    },
+    {
+      "type": "tag",
+      "id": "tag_1792924574206"
     },
     {
       "type": "tag",

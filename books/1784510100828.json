@@ -337,11 +337,25 @@
   ],
   "recommendations": [
     {
-      "bookId": "1777835439851",
+      "bookId": "1792921852276",
+      "blurb": ""
+    },
+    {
+      "bookId": "1787444534710",
+      "blurb": ""
+    },
+    {
+      "bookId": "1787444669170",
+      "blurb": ""
+    },
+    {
+      "bookId": "1788853430346",
       "blurb": ""
     }
   ],
-  "frontTags": [],
+  "frontTags": [
+    "tag_1792924574206"
+  ],
   "customBtnLabel": "📥 Full Book",
   "customBtnUrl": "https://www.patreon.com/posts/164299722?utm_campaign=postshare_creator&utm_content=android_share",
   "cpaGates": 2,

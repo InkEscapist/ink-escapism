@@ -235,9 +235,23 @@
       "status": "published"
     }
   ],
-  "recommendations": [],
+  "recommendations": [
+    {
+      "bookId": "1784510100828",
+      "blurb": ""
+    },
+    {
+      "bookId": "1787444534710",
+      "blurb": ""
+    },
+    {
+      "bookId": "1792921852276",
+      "blurb": ""
+    }
+  ],
   "frontTags": [
-    "tag_1777957425566"
+    "tag_1777957425566",
+    "tag_1792924574206"
   ],
   "weeklyUpdates": false,
   "customBtnLabel": "📥 Full Book",
