@@ -1153,7 +1153,7 @@ function Home({ data, remoteLoaded }) {
     if (tag) {
       let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
       tagBooks = applyTagSort(tagBooks, tag);
-      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} remoteLoaded={remoteLoaded} />;
+      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} remoteLoaded={remoteLoaded} description={tag.description} />;
     }
     return <MoreBooksPage books={section(slug)} title={labelMap[slug] || slug} status={slug} remoteLoaded={remoteLoaded} />;
   }
@@ -1187,7 +1187,7 @@ function Home({ data, remoteLoaded }) {
           let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
           if (!tagBooks.length) return null;
           tagBooks = applyTagSort(tagBooks, tag);
-          return <BookSection key={tag.id} title={tag.name} books={tagBooks} status={tag.id} />;
+          return <BookSection key={tag.id} title={tag.name} books={tagBooks} status={tag.id} description={tag.description} />;
         }
         return null;
       })}
@@ -1251,7 +1251,7 @@ function SearchPage({ data }) {
   );
 }
 
-function MoreBooksPage({ books, title, status, remoteLoaded }) {
+function MoreBooksPage({ books, title, status, remoteLoaded, description }) {
   const [sort, setSort] = React.useState('alpha');
   const canPopularity = status === 'ongoing' || status === 'completed';
 
@@ -1293,6 +1293,17 @@ function MoreBooksPage({ books, title, status, remoteLoaded }) {
           }
         </div>
       </div>
+      {description && description.trim() && (
+        <div style={{
+          background: 'var(--ink-card)', border: '1px solid var(--ink-border)',
+          borderLeft: '4px solid var(--ink-accent)', borderRadius: 10,
+          padding: '14px 18px', marginBottom: 24,
+          fontSize: 15, lineHeight: 1.65, color: 'var(--ink-text)', whiteSpace: 'pre-wrap'
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>What is this trope?</div>
+          {description}
+        </div>
+      )}
       <div>
         {sorted.map(b => <BookListRow key={b.id} b={b} />)}
       </div>
@@ -1386,14 +1397,54 @@ function BookCard({ b }) {
   );
 }
 
-function BookSection({ title, books, status }) {
+function BookSection({ title, books, status, description }) {
+  const [showInfo, setShowInfo] = React.useState(false);
   if (!books.length) return null;
+  const hasDesc = !!(description && description.trim());
   const SHOW = 4;
   const visible = books.slice(0, SHOW);
   const hasMore = books.length > SHOW;
   return (
     <div style={{ marginBottom: 48 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--ink-text)' }}>{title}</h2>
+      <h2
+        onClick={hasDesc ? () => setShowInfo(true) : undefined}
+        style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--ink-text)', cursor: hasDesc ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 8 }}>
+        {title}
+        {hasDesc && (
+          <span title="What does this mean?" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--ink-muted)',
+            color: 'var(--ink-muted)', fontSize: 13, fontWeight: 700, flexShrink: 0
+          }}>i</span>
+        )}
+      </h2>
+
+      {showInfo && hasDesc && (
+        <div onClick={() => setShowInfo(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--ink-bg)', color: 'var(--ink-text)', border: '1px solid var(--ink-border)',
+            borderRadius: 14, padding: '22px 22px 18px', maxWidth: 480, width: '100%',
+            maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 12px 40px rgba(0,0,0,0.35)'
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>What is this trope?</div>
+            <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 12px' }}>{title}</h3>
+            <p style={{ fontSize: 15, lineHeight: 1.65, margin: '0 0 18px', whiteSpace: 'pre-wrap' }}>{description}</p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <a href={`#/more/${status}`} onClick={() => setShowInfo(false)} style={{
+                background: 'var(--ink-accent)', color: 'var(--ink-accent-text)', borderRadius: 8,
+                padding: '9px 18px', fontSize: 14, fontWeight: 700, textDecoration: 'none'
+              }}>See all books →</a>
+              <button onClick={() => setShowInfo(false)} style={{
+                background: 'transparent', color: 'var(--ink-text)', border: '1px solid var(--ink-border)',
+                borderRadius: 8, padding: '9px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer'
+              }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Desktop: normal grid. Mobile: horizontal scroll row */}
       <style>{`
@@ -2221,6 +2272,10 @@ function TagsManager({ data, setData }) {
     setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, order } : t) });
   }
 
+  function updateTagDescription(id, description) {
+    setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, description } : t) });
+  }
+
   return (
     <div>
       <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6, color: 'var(--ink-text)' }}>🏷 Front-Page Tags</h3>
@@ -2290,7 +2345,7 @@ function TagsManager({ data, setData }) {
           {tags.map(tag => {
             const taggedBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id));
             return (
-              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} onUpdateOrder={updateTagOrder} />
+              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} onUpdateOrder={updateTagOrder} onUpdateDescription={updateTagDescription} />
             );
           })}
         </div>
@@ -2299,8 +2354,9 @@ function TagsManager({ data, setData }) {
   );
 }
 
-function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOrder }) {
+function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOrder, onUpdateDescription }) {
   const [editing, setEditing] = React.useState(false);
+  const [desc, setDesc] = React.useState(tag.description || '');
   const [name, setName] = React.useState(tag.name);
   const [dragIdx, setDragIdx] = React.useState(null);
   const [dragOver, setDragOver] = React.useState(null);
@@ -2372,6 +2428,20 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOr
             <button className="btn-danger" style={{ fontSize: 12 }} onClick={() => onDelete(tag.id)}>✕ Delete</button>
           </>
         )}
+      </div>
+
+      {/* Trope description (shown to readers) */}
+      <div style={{ marginTop: 12 }}>
+        <label className="admin-label">Trope description (shown to readers)</label>
+        <textarea className="admin-input" rows={3} value={desc}
+          onChange={e => setDesc(e.target.value)}
+          placeholder="Explain this trope for readers new to Chinese/Asian fiction…" />
+        <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button className="btn-primary" style={{ fontSize: 12, padding: '5px 12px' }}
+            disabled={desc === (tag.description || '')}
+            onClick={() => onUpdateDescription(tag.id, desc.trim())}>Save description</button>
+          {desc !== (tag.description || '') && <span style={{ fontSize: 12, color: 'var(--ink-muted)' }}>Unsaved — tap Save, then Publish</span>}
+        </div>
       </div>
 
       {/* Sort order picker */}
