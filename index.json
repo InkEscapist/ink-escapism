@@ -1756,7 +1756,14 @@
     },
     {
       "id": "tag_1792924574206",
-      "name": "Switching grooms"
+      "name": "Switching grooms",
+      "sortOrder": "manual",
+      "order": [
+        "1787444534710",
+        "1788853430346",
+        "1792921852276",
+        "1784510100828"
+      ]
     }
   ],
   "adminCollections": [
@@ -1779,14 +1786,6 @@
       "id": "tag_1777957425566"
     },
     {
-      "type": "section",
-      "id": "ongoing"
-    },
-    {
-      "type": "tag",
-      "id": "tag_1780854152356"
-    },
-    {
       "type": "tag",
       "id": "tag_1777957464383"
     },
@@ -1801,6 +1800,14 @@
     {
       "type": "tag",
       "id": "tag_1790009341290"
+    },
+    {
+      "type": "tag",
+      "id": "tag_1780854152356"
+    },
+    {
+      "type": "section",
+      "id": "ongoing"
     },
     {
       "type": "section",
