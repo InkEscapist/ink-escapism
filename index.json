@@ -206,7 +206,8 @@
       "synopsis": "They say the reigning emperor is cold and ruthless, his moods as unpredictable as the wind, rarely gracing the inner palace with his presence — until the fourth daughter of the Xi family entered the court.\n\nTo say that among three thousand women in the harem, he favored only her alone would not be an exaggeration.\n\nHe bestowed upon her the character *Chen*, then granted her Chenqian Palace — the grandest and closest to his own quarters. Within a mere half year, she rose from the rank of Zhaoyi to the head of the Four Consorts.\n\nHe even had honeydew melons transported from two thousand li away, delivered to her door each and every day — all because she was fond of them.\n\nAll of it, just to coax a smile from his beauty.\n\nYet no one knew that this same Consort Chen, she who reigned supreme in the inner palace, would one day be found huddled in the corner of a resplendent golden hall, tears blurring her vision, watching with frightened eyes as a figure draped in shadow slowly approached.\n\nThe faint clinking of iron chains drifted through the air.\n\nThe tall man clad in imperial yellow knelt on one knee before Xi Rongyan",
       "frontTags": [
         "tag_1777957464383",
-        "tag_1790009135400"
+        "tag_1790009135400",
+        "tag_1793418156100"
       ],
       "customBtnUrl": "https://www.patreon.com/posts/164936541?utm_campaign=postshare_creator&utm_content=android_share",
       "customBtnLabel": "📥 Full Book",
@@ -270,7 +271,8 @@
       "recommendations": [],
       "frontTags": [
         "tag_1777957464383",
-        "tag_1790009135400"
+        "tag_1790009135400",
+        "tag_1793418156100"
       ],
       "customBtnLabel": "",
       "customBtnUrl": "",
@@ -1000,7 +1002,8 @@
       ],
       "frontTags": [
         "tag_1777957464383",
-        "tag_1777957425566"
+        "tag_1777957425566",
+        "tag_1793418156100"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1130,7 +1133,8 @@
       ],
       "frontTags": [
         "tag_1777957425566",
-        "tag_1777957464383"
+        "tag_1777957464383",
+        "tag_1793418156100"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1347,7 +1351,8 @@
       ],
       "frontTags": [
         "tag_1777957425566",
-        "tag_1777957464383"
+        "tag_1777957464383",
+        "tag_1793418156100"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1658,7 +1663,7 @@
   "tags": [
     {
       "id": "tag_1777957425566",
-      "name": "New Arrival",
+      "name": "New Arrivals",
       "sortOrder": "manual",
       "order": [
         "1792922310108",
@@ -1681,7 +1686,8 @@
         "1787444669170",
         "1787444306034",
         "1785935151890"
-      ]
+      ],
+      "description": "New translations, just touched down on the Ink Escapism runway!"
     },
     {
       "id": "tag_1777957464383",
@@ -1700,7 +1706,8 @@
         "1788446305081",
         "1790008443278",
         "1790008530920"
-      ]
+      ],
+      "description": "Red flags, black flags or just pure scum. The male lead regrets his past treatment of the Female lead and chases like life depends on it."
     },
     {
       "id": "tag_1780854152356",
@@ -1722,11 +1729,13 @@
         "1786081929252",
         "1786082885979",
         "1786083040920"
-      ]
+      ],
+      "description": "From book to the small screen. Currently picked up for a drama."
     },
     {
       "id": "tag_1782137796679",
-      "name": "Danmei"
+      "name": "Danmei",
+      "description": "Fujioshi and fudanshi gather! Grown men kiss over here!"
     },
     {
       "id": "tag_1790009135400",
@@ -1740,7 +1749,8 @@
         "1775788486628",
         "1782499577887",
         "1784510466729"
-      ]
+      ],
+      "description": "Inside the Emperor's Harem; forget peace, survive first. May the best consort win!"
     },
     {
       "id": "tag_1790009341290",
@@ -1752,7 +1762,8 @@
         "1790008443278",
         "1784510257239",
         "1784510386444"
-      ]
+      ],
+      "description": "All set in the time of technology"
     },
     {
       "id": "tag_1792924574206",
@@ -1763,7 +1774,13 @@
         "1788853430346",
         "1792921852276",
         "1784510100828"
-      ]
+      ],
+      "description": "If the first groom is twitching, replace him on the spot! Scum be gone!"
+    },
+    {
+      "id": "tag_1793418156100",
+      "name": "Yandere",
+      "description": "Mad men obsessive love; He must have her at all cost! Only recommended inside fantasies, after you are done, wake up!"
     }
   ],
   "adminCollections": [
@@ -1799,6 +1816,10 @@
     },
     {
       "type": "tag",
+      "id": "tag_1793418156100"
+    },
+    {
+      "type": "tag",
       "id": "tag_1790009341290"
     },
     {
@@ -1810,12 +1831,12 @@
       "id": "ongoing"
     },
     {
-      "type": "section",
-      "id": "completed"
-    },
-    {
       "type": "tag",
       "id": "tag_1782137796679"
+    },
+    {
+      "type": "section",
+      "id": "completed"
     },
     {
       "type": "section",
