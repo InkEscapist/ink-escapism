@@ -3167,11 +3167,8 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
       }
 
       setDocxPreview({ chapters });
-      // Default tick: if the book already has chapters and the file has more, tick only the NEW ones
-      // (everything after what's already on the site). Otherwise tick everything.
-      const existing = (book.chapters || []).length;
-      const start = (existing > 0 && chapters.length > existing) ? existing : 0;
-      setImportSel(new Set(chapters.map((_, i) => i).filter(i => i >= start)));
+      // Show every chapter from the file, with NOTHING ticked: you choose what goes up.
+      setImportSel(new Set());
       setImportFrom('');
       setImportTo('');
     } catch (err) {
@@ -3569,11 +3566,6 @@ function AdminBookCard({ book, data, setData, onToggleArchive }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                   <button className="btn-ghost" onClick={() => setImportSel(new Set(docxPreview.chapters.map((_, i) => i)))}>Select all</button>
                   <button className="btn-ghost" onClick={() => setImportSel(new Set())}>Select none</button>
-                  {(book.chapters || []).length > 0 && (book.chapters || []).length < docxPreview.chapters.length && (
-                    <button className="btn-ghost" onClick={() => setImportSel(new Set(docxPreview.chapters.map((_, i) => i).filter(i => i >= (book.chapters || []).length)))}>
-                      Only new (after ch. {(book.chapters || []).length})
-                    </button>
-                  )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', marginBottom: 10, fontSize: 13 }}>
                   <span>Range:</span>
@@ -4283,7 +4275,7 @@ function Admin({ data, setData, pushToGitHub, incompleteBookIds, retryLoadMissin
         language: info.language
       }));
       setEpubChapters(info.chapters);
-      setEpubSel(new Set(info.chapters.map((_, i) => i)));
+      setEpubSel(new Set());
       setEpubFrom(''); setEpubTo('');
       if (!info.chapters.length) {
         alert("Book details were filled in, but no chapters were detected. Chapters must be labelled 'Chapter 1', 'Chapter 2', etc.");
@@ -4557,7 +4549,7 @@ function Admin({ data, setData, pushToGitHub, incompleteBookIds, retryLoadMissin
           </button>
           <input ref={epubBookInputRef} type="file" accept=".epub" style={{ display: 'none' }} onChange={handleEpubNewBook} />
           <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 8 }}>
-            Everything is filled in below for you to check and edit. If the EPUB has chapters, you pick which ones to post first.
+            Everything is filled in below for you to check and edit. If the EPUB has chapters, the full list appears with nothing ticked and you pick which ones to post.
           </div>
         </div>
 
