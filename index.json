@@ -506,7 +506,9 @@
       "language": "en",
       "id": "1784511087465",
       "recommendations": [],
-      "frontTags": [],
+      "frontTags": [
+        "tag_1794836715894"
+      ],
       "customBtnLabel": "📥 Full Book ",
       "customBtnUrl": "https://www.patreon.com/posts/164298380?utm_campaign=postshare_creator&utm_content=android_share",
       "cpaGates": 2,
@@ -546,9 +548,7 @@
       "language": "en",
       "id": "1785935151890",
       "recommendations": [],
-      "frontTags": [
-        "tag_1777957425566"
-      ],
+      "frontTags": [],
       "weeklyUpdates": true,
       "customBtnLabel": "📥 Full Book",
       "customBtnUrl": "https://www.patreon.com/posts/165833073?utm_campaign=postshare_creator&utm_content=android_share",
@@ -1075,7 +1075,7 @@
         }
       ],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1792924574206"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1094,11 +1094,24 @@
       "showPatreonOnLast": false,
       "language": "en",
       "id": "1788446279999",
-      "recommendations": [],
+      "recommendations": [
+        {
+          "bookId": "1791677664375",
+          "blurb": ""
+        },
+        {
+          "bookId": "1787444669170",
+          "blurb": ""
+        },
+        {
+          "bookId": "1784511087465",
+          "blurb": ""
+        }
+      ],
       "frontTags": [
-        "tag_1777957425566",
         "tag_1777957464383",
-        "tag_1790009135400"
+        "tag_1790009135400",
+        "tag_1794836715894"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1132,7 +1145,6 @@
         }
       ],
       "frontTags": [
-        "tag_1777957425566",
         "tag_1777957464383",
         "tag_1793418156100"
       ],
@@ -1168,7 +1180,6 @@
         }
       ],
       "frontTags": [
-        "tag_1777957425566",
         "tag_1792924574206"
       ],
       "weeklyUpdates": false,
@@ -1189,9 +1200,7 @@
       "language": "en",
       "id": "1788853633587",
       "recommendations": [],
-      "frontTags": [
-        "tag_1777957425566"
-      ],
+      "frontTags": [],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
       "customBtnUrl": "https://www.patreon.com/LaoShandiDeBaobei/posts/full-book-entire-168931754?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link",
@@ -1211,8 +1220,8 @@
       "id": "1788853769089",
       "recommendations": [],
       "frontTags": [
-        "tag_1777957425566",
-        "tag_1790009135400"
+        "tag_1790009135400",
+        "tag_1794836715894"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1243,15 +1252,9 @@
         {
           "bookId": "1788853769089",
           "blurb": ""
-        },
-        {
-          "bookId": "1790008443278",
-          "blurb": ""
         }
       ],
-      "frontTags": [
-        "tag_1777957425566"
-      ],
+      "frontTags": [],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
       "customBtnUrl": "https://www.patreon.com/LaoShandiDeBaobei/posts/full-book-2nd-170163555?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link",
@@ -1281,15 +1284,10 @@
         {
           "bookId": "1787444534710",
           "blurb": ""
-        },
-        {
-          "bookId": "1775435546083",
-          "blurb": ""
         }
       ],
       "frontTags": [
-        "tag_1777957425566",
-        "tag_1777957464383"
+        "tag_1792924574206"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1310,7 +1308,6 @@
       "id": "1790008443278",
       "recommendations": [],
       "frontTags": [
-        "tag_1777957425566",
         "tag_1777957464383",
         "tag_1790009341290"
       ],
@@ -1426,7 +1423,8 @@
       ],
       "frontTags": [
         "tag_1777957425566",
-        "tag_1790009135400"
+        "tag_1790009135400",
+        "tag_1794836715894"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1736,7 +1734,8 @@
       "id": "1794836446625",
       "recommendations": [],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1777957425566",
+        "tag_1794836715894"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1757,7 +1756,8 @@
       "id": "1794836474818",
       "recommendations": [],
       "frontTags": [
-        "tag_1777957425566"
+        "tag_1777957425566",
+        "tag_1794836715894"
       ],
       "weeklyUpdates": false,
       "customBtnLabel": "📥 Full Book",
@@ -1888,6 +1888,10 @@
       "id": "tag_1793418156100",
       "name": "Yandere",
       "description": "Mad men obsessive love; He must have her at all cost! Only recommended inside fantasies, after you are done, wake up!"
+    },
+    {
+      "id": "tag_1794836715894",
+      "name": "Transmigration"
     }
   ],
   "adminCollections": [
@@ -1915,7 +1919,7 @@
     },
     {
       "type": "tag",
-      "id": "tag_1792924574206"
+      "id": "tag_1793418156100"
     },
     {
       "type": "tag",
@@ -1923,7 +1927,11 @@
     },
     {
       "type": "tag",
-      "id": "tag_1793418156100"
+      "id": "tag_1794836715894"
+    },
+    {
+      "type": "tag",
+      "id": "tag_1792924574206"
     },
     {
       "type": "tag",

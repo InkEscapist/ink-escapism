@@ -411,7 +411,9 @@
     }
   ],
   "recommendations": [],
-  "frontTags": [],
+  "frontTags": [
+    "tag_1794836715894"
+  ],
   "customBtnLabel": "📥 Full Book ",
   "customBtnUrl": "https://www.patreon.com/posts/164298380?utm_campaign=postshare_creator&utm_content=android_share",
   "cpaGates": 2,
