@@ -1120,6 +1120,51 @@ function applyTagSort(tagBooks, tag) {
   return sorted;
 }
 
+// Reader-facing explanation of a tag (e.g. what "Yandere" means).
+function tagDescription(tag) {
+  if (!tag) return '';
+  return (tag.description || tag.desc || tag.info || tag.tooltip || tag.meaning || tag.definition || '').toString().trim();
+}
+// "New Arrival" tags are locked to the admin's custom order (no reader sorting).
+function isTagLocked(tag) {
+  if (!tag) return false;
+  if (typeof tag.locked === 'boolean') return tag.locked;
+  return /new\s*arrival/i.test(tag.name || '');
+}
+
+// Section heading with a little (i) button that explains the tag.
+function TagTitle({ title, description, size = 22, marginBottom = 20 }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div style={{ marginBottom }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <h2 style={{ fontSize: size, fontWeight: size >= 24 ? 800 : 700, margin: 0, color: 'var(--ink-text)' }}>{title}</h2>
+        {description && (
+          <button
+            onClick={() => setOpen(o => !o)}
+            aria-label={'What does ' + title + ' mean?'}
+            aria-expanded={open}
+            style={{
+              width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+              border: '1.5px solid var(--ink-accent)',
+              background: open ? 'var(--ink-accent)' : 'transparent',
+              color: open ? 'var(--ink-accent-text)' : 'var(--ink-text)',
+              fontSize: 13, fontWeight: 700, fontStyle: 'italic', fontFamily: 'Georgia, serif',
+              cursor: 'pointer', lineHeight: 1, padding: 0,
+            }}>i</button>
+        )}
+      </div>
+      {description && open && (
+        <div style={{
+          marginTop: 10, padding: '10px 14px', borderRadius: 10,
+          border: '1px solid var(--ink-border)', background: 'var(--ink-card)',
+          color: 'var(--ink-muted)', fontSize: 14, lineHeight: 1.6, maxWidth: 560,
+        }}>{description}</div>
+      )}
+    </div>
+  );
+}
+
 function Home({ data, remoteLoaded }) {
   // Track site visit
   React.useEffect(() => {
@@ -1153,7 +1198,7 @@ function Home({ data, remoteLoaded }) {
     if (tag) {
       let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
       tagBooks = applyTagSort(tagBooks, tag);
-      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} remoteLoaded={remoteLoaded} />;
+      return <MoreBooksPage books={tagBooks} title={tag.name} status={slug} remoteLoaded={remoteLoaded} tag={tag} />;
     }
     return <MoreBooksPage books={section(slug)} title={labelMap[slug] || slug} status={slug} remoteLoaded={remoteLoaded} />;
   }
@@ -1187,7 +1232,7 @@ function Home({ data, remoteLoaded }) {
           let tagBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id) && (b.language || 'en') === 'en');
           if (!tagBooks.length) return null;
           tagBooks = applyTagSort(tagBooks, tag);
-          return <BookSection key={tag.id} title={tag.name} books={tagBooks} status={tag.id} />;
+          return <BookSection key={tag.id} title={tag.name} books={tagBooks} status={tag.id} description={tagDescription(tag)} />;
         }
         return null;
       })}
@@ -1251,47 +1296,62 @@ function SearchPage({ data }) {
   );
 }
 
-function MoreBooksPage({ books, title, status, remoteLoaded }) {
-  const [sort, setSort] = React.useState('alpha');
-  const canPopularity = status === 'ongoing' || status === 'completed';
+function MoreBooksPage({ books, title, status, remoteLoaded, tag }) {
+  const isTag = !!tag;
+  const locked = isTag && isTagLocked(tag);
+  const popIds = isTag ? (tag.popularOrder || []) : [];
+  const canPopularity = !locked && (isTag
+    ? popIds.some(id => books.some(b => b.id === id))
+    : (status === 'ongoing' || status === 'completed'));
+  // Tag pages open in the admin's own order ('default'); status pages stay A→Z.
+  const [sort, setSort] = React.useState(isTag ? 'default' : 'alpha');
 
   const sorted = React.useMemo(() => {
     const b = [...books];
+    if (locked || sort === 'default') return b; // already in the admin's order
     if (sort === 'alpha') b.sort((a, z) => a.title.localeCompare(z.title));
     if (sort === 'alpha-z') b.sort((a, z) => z.title.localeCompare(a.title));
-    if (sort === 'popular') b.sort((a, z) => (z.popularity || 0) - (a.popularity || 0));
+    if (sort === 'popular') {
+      if (isTag) {
+        const idx = new Map(popIds.map((id, i) => [id, i]));
+        const inPop = b.filter(x => idx.has(x.id)).sort((a, z) => idx.get(a.id) - idx.get(z.id));
+        const rest = b.filter(x => !idx.has(x.id));
+        return [...inPop, ...rest];
+      }
+      b.sort((a, z) => (z.popularity || 0) - (a.popularity || 0));
+    }
     return b;
-  }, [books, sort]);
+  }, [books, sort, locked]);
+
+  const btn = active => ({
+    background: active ? 'var(--ink-accent)' : 'var(--ink-card)',
+    color: active ? 'var(--ink-accent-text)' : 'var(--ink-text)',
+    border: '1px solid var(--ink-border)', borderRadius: 8,
+    padding: '7px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 600
+  });
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
       <a href="#" style={{ color: 'var(--ink-muted)', fontSize: 13, textDecoration: 'none' }}>← Back to home</a>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 20, marginBottom: 24 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink-text)', margin: 0 }}>{title}</h2>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setSort(sort === 'alpha' ? 'alpha-z' : 'alpha')}
-            style={{
-              background: sort.startsWith('alpha') ? 'var(--ink-accent)' : 'var(--ink-card)',
-              color: sort.startsWith('alpha') ? 'var(--ink-accent-text)' : 'var(--ink-text)',
-              border: '1px solid var(--ink-border)', borderRadius: 8,
-              padding: '7px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 600
-            }}>
-            {sort === 'alpha-z' ? 'A→Z ↑ Z→A' : 'A→Z'}
-          </button>
-          {canPopularity &&
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 20, marginBottom: 24 }}>
+        <TagTitle title={title} description={tagDescription(tag)} size={24} marginBottom={0} />
+        {!locked && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {isTag && (
+              <button onClick={() => setSort('default')} style={btn(sort === 'default')}>Featured</button>
+            )}
             <button
-              onClick={() => setSort('popular')}
-              style={{
-                background: sort === 'popular' ? 'var(--ink-accent)' : 'var(--ink-card)',
-                color: sort === 'popular' ? 'var(--ink-accent-text)' : 'var(--ink-text)',
-                border: '1px solid var(--ink-border)', borderRadius: 8,
-                padding: '7px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 600
-              }}>
-              Most Popular
+              onClick={() => setSort(sort === 'alpha' ? 'alpha-z' : 'alpha')}
+              style={btn(sort === 'alpha' || sort === 'alpha-z')}>
+              {sort === 'alpha' ? 'Z→A' : 'A→Z'}
             </button>
-          }
-        </div>
+            {canPopularity &&
+              <button onClick={() => setSort('popular')} style={btn(sort === 'popular')}>
+                Most Popular
+              </button>
+            }
+          </div>
+        )}
       </div>
       <div>
         {sorted.map(b => <BookListRow key={b.id} b={b} />)}
@@ -1386,14 +1446,14 @@ function BookCard({ b }) {
   );
 }
 
-function BookSection({ title, books, status }) {
+function BookSection({ title, books, status, description }) {
   if (!books.length) return null;
   const SHOW = 4;
   const visible = books.slice(0, SHOW);
   const hasMore = books.length > SHOW;
   return (
     <div style={{ marginBottom: 48 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--ink-text)' }}>{title}</h2>
+      <TagTitle title={title} description={description} />
 
       {/* Desktop: normal grid. Mobile: horizontal scroll row */}
       <style>{`
@@ -2221,6 +2281,10 @@ function TagsManager({ data, setData }) {
     setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, order } : t) });
   }
 
+  function updateTagField(id, patch) {
+    setData({ ...data, tags: tags.map(t => t.id === id ? { ...t, ...patch } : t) });
+  }
+
   return (
     <div>
       <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6, color: 'var(--ink-text)' }}>🏷 Front-Page Tags</h3>
@@ -2290,7 +2354,7 @@ function TagsManager({ data, setData }) {
           {tags.map(tag => {
             const taggedBooks = data.books.filter(b => (b.frontTags || []).includes(tag.id));
             return (
-              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} onUpdateOrder={updateTagOrder} />
+              <TagRow key={tag.id} tag={tag} taggedBooks={taggedBooks} onRename={renameTag} onDelete={deleteTag} onUpdateSort={updateTagSort} onUpdateOrder={updateTagOrder} onUpdateField={updateTagField} />
             );
           })}
         </div>
@@ -2299,7 +2363,7 @@ function TagsManager({ data, setData }) {
   );
 }
 
-function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOrder }) {
+function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOrder, onUpdateField }) {
   const [editing, setEditing] = React.useState(false);
   const [name, setName] = React.useState(tag.name);
   const [dragIdx, setDragIdx] = React.useState(null);
@@ -2327,6 +2391,21 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOr
     ...savedOrder.map(id => taggedBooks.find(b => b.id === id)).filter(Boolean),
     ...taggedBooks.filter(b => !savedOrder.includes(b.id)),
   ];
+
+  // Popularity order (separate from custom order; readers can optionally sort by it)
+  const savedPop = tag.popularOrder || [];
+  const popBooks = [
+    ...savedPop.map(id => taggedBooks.find(b => b.id === id)).filter(Boolean),
+    ...taggedBooks.filter(b => !savedPop.includes(b.id)),
+  ];
+  function movePop(from, to) {
+    if (to < 0 || to >= popBooks.length) return;
+    const next = [...popBooks];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onUpdateField(tag.id, { popularOrder: next.map(b => b.id) });
+  }
+  const lockedNow = isTagLocked(tag);
 
   function moveBook(from, to) {
     if (to < 0 || to >= orderedBooks.length) return;
@@ -2373,6 +2452,23 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOr
           </>
         )}
       </div>
+
+      {/* Reader-facing description (shown behind the (i) icon on the home page) */}
+      <div style={{ marginTop: 12 }}>
+        <label className="admin-label">ⓘ Tag description (readers see this when they tap the (i) icon)</label>
+        <textarea className="admin-input" rows={2}
+          placeholder="e.g. Yandere — a character whose love is obsessive and possessive, often to a dangerous degree."
+          value={tag.description || ''}
+          onChange={e => onUpdateField(tag.id, { description: e.target.value })}
+          style={{ width: '100%', resize: 'vertical' }} />
+      </div>
+
+      {/* Lock order */}
+      <label style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--ink-text)', cursor: 'pointer' }}>
+        <input type="checkbox" checked={lockedNow}
+          onChange={e => onUpdateField(tag.id, { locked: e.target.checked })} />
+        🔒 Lock order — readers cannot re-sort this tag (A→Z / Most Popular hidden). Use with Custom Order.
+      </label>
 
       {/* Sort order picker */}
       <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -2449,6 +2545,29 @@ function TagRow({ tag, taggedBooks, onRename, onDelete, onUpdateSort, onUpdateOr
             ))}
           </div>
         )
+      )}
+
+      {/* Popularity order — optional "Most Popular" button for readers */}
+      {!lockedNow && taggedBooks.length > 0 && (
+        <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px dashed var(--ink-border)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-text)', marginBottom: 4 }}>🔥 Popularity Order</div>
+          <p style={{ fontSize: 12, color: 'var(--ink-muted)', marginBottom: 8, lineHeight: 1.5 }}>
+            Rank the books readers are reading most. This does not change the page above — it only powers the optional "Most Popular" button on the tag's More Books page.
+          </p>
+          {popBooks.map((b, i) => (
+            <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', marginBottom: 4, border: '1px solid var(--ink-border)', borderRadius: 8, background: 'var(--ink-bg)' }}>
+              <span style={{ fontSize: 11, color: 'var(--ink-muted)', width: 18, flexShrink: 0 }}>{i + 1}</span>
+              {b.cover && <img src={b.cover} style={{ width: 14, height: 20, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />}
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--ink-text)' }}>{b.title}</span>
+              <button className="btn-ghost" style={{ padding: '1px 6px', fontSize: 10 }} onClick={() => movePop(i, i - 1)} disabled={i === 0}>▲</button>
+              <button className="btn-ghost" style={{ padding: '1px 6px', fontSize: 10 }} onClick={() => movePop(i, i + 1)} disabled={i === popBooks.length - 1}>▼</button>
+              <button className="btn-ghost" style={{ padding: '2px 8px', fontSize: 10 }} onClick={() => movePop(i, 0)} disabled={i === 0}>⤒ Top</button>
+            </div>
+          ))}
+          {savedPop.length > 0 && (
+            <button className="btn-ghost" style={{ fontSize: 12, marginTop: 4 }} onClick={() => onUpdateField(tag.id, { popularOrder: [] })}>Clear popularity order</button>
+          )}
+        </div>
       )}
     </div>
   );
