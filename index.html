@@ -1011,14 +1011,18 @@ const DarkCtx = React.createContext(false);
 
 /* ─── Header ──────────────────────────────────────────────── */
 
-/* ─── Holiday Gift Packages ───────────────────────────────── */
+/* ─── Holiday Packages ───────────────────────────────── */
 function getActivePromo(data) {
   const p = data && data.holidayPromo;
-  if (!p || p.enabled === false) return null;
-  const today = new Date().toLocaleDateString('en-CA');
-  if (p.startDate && today < p.startDate) return null;
-  if (p.endDate && today > p.endDate) return null;
-  const packages = (p.packages || []).filter(k => k.link);
+  if (!p) return null;
+  const preview = /[?&]promo=preview/.test(location.search);
+  if (!preview) {
+    if (p.enabled === false) return null;
+    const today = new Date().toLocaleDateString('en-CA');
+    if (p.startDate && today < p.startDate) return null;
+    if (p.endDate && today > p.endDate) return null;
+  }
+  const packages = (p.packages || []).filter(k => preview || k.link);
   if (!packages.length) return null;
   return { ...p, packages };
 }
@@ -1054,8 +1058,8 @@ function HolidayBanner({ promo }) {
       <SnowLayer count={16} />
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: .8 }}>❄ Ink Escapism Holiday Gift Packages</div>
-          <div style={{ fontSize: 19, fontWeight: 800, marginTop: 4 }}>{promo.count || 5} books for ${promo.price || 12}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', opacity: .8 }}>❄ Ink Escapism Holiday Packages</div>
+          <div style={{ fontSize: 19, fontWeight: 800, marginTop: 4 }}>Get {promo.count || 5} ebooks at once</div>
         </div>
         <a href="#/gifts" className="ink-promo-btn">See the packages</a>
       </div>
@@ -1065,7 +1069,7 @@ function HolidayBanner({ promo }) {
 
 function HolidayPopup({ promo }) {
   const KEY = 'ink-holiday-popup-v1';
-  const [open, setOpen] = React.useState(() => { try { return !localStorage.getItem(KEY); } catch { return false; } });
+  const [open, setOpen] = React.useState(() => { try { return /[?&]promo=preview/.test(location.search) || !localStorage.getItem(KEY); } catch { return false; } });
   if (!open) return null;
   const close = () => { try { localStorage.setItem(KEY, '1'); } catch {} setOpen(false); };
   return (
@@ -1074,10 +1078,9 @@ function HolidayPopup({ promo }) {
         <SnowLayer count={40} />
         <button onClick={close} aria-label="Close" style={{ position: 'absolute', top: 10, right: 14, background: 'none', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer', zIndex: 2 }}>×</button>
         <div style={{ position: 'relative' }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: .8 }}>Ink Escapism</div>
-          <h2 style={{ fontSize: 27, fontWeight: 800, margin: '8px 0 6px', lineHeight: 1.2 }}>Holiday Gift Packages</h2>
-          <p style={{ fontSize: 16, margin: '0 0 4px' }}>Pick a themed bundle of</p>
-          <p style={{ fontSize: 22, fontWeight: 800, margin: '0 0 18px' }}>{promo.count || 5} books for ${promo.price || 12}</p>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: .8 }}>❄ Ink Escapism · Holiday Packages</div>
+          <h2 style={{ fontSize: 27, fontWeight: 800, margin: '10px 0 8px', lineHeight: 1.2 }}>Get {promo.count || 5} ebooks at once</h2>
+          <p style={{ fontSize: 15, margin: '0 0 20px', opacity: .9, lineHeight: 1.5 }}>Enjoy reading on Ink Escapism this holiday. Download {promo.count || 5} ebooks now.</p>
           <a href="#/gifts" onClick={close} className="ink-promo-btn">Browse the packages</a>
         </div>
       </div>
@@ -1093,8 +1096,8 @@ function GiftPackagesPage({ data, promo }) {
       <div className="ink-promo-card" style={{ margin: '14px 0 24px', padding: '30px 22px', textAlign: 'center' }}>
         <SnowLayer count={36} />
         <div style={{ position: 'relative' }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Holiday Gift Packages</h1>
-          <p style={{ margin: '8px 0 0', fontSize: 17 }}>{promo.count || 5} books for ${promo.price || 12} each package</p>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Ink Escapism Holiday Packages</h1>
+          <p style={{ margin: '8px 0 0', fontSize: 16, lineHeight: 1.5 }}>Enjoy reading on Ink Escapism this holiday. Get {promo.count || 5} ebooks at once.</p>
         </div>
       </div>
       {promo.packages.map(pk => {
