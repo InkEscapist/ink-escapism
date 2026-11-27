@@ -1954,5 +1954,66 @@
       "type": "section",
       "id": "upcoming"
     }
-  ]
+  ],
+  "holidayPromo": {
+    "enabled": true,
+    "price": 12,
+    "count": 5,
+    "startDate": "2026-12-01",
+    "endDate": "2026-01-10",
+    "packages": [
+      {
+        "id": "pk1795794419974",
+        "name": "Holiday Package 1",
+        "tagline": "The perfect mix read",
+        "link": "https://www.patreon.com/collection/2519190",
+        "bookIds": [
+          "1780052865251",
+          "1784510821069",
+          "1784510744841",
+          "1790008627081",
+          "1784510100828"
+        ]
+      },
+      {
+        "id": "pk1795794588815",
+        "name": "Holiday Package 2",
+        "tagline": "A little here, a little there",
+        "link": "https://www.patreon.com/collection/2519210",
+        "bookIds": [
+          "1791677729411",
+          "1791677664375",
+          "1788853633587",
+          "1788446305081",
+          "1784511174318"
+        ]
+      },
+      {
+        "id": "pk1795795170487",
+        "name": "Holiday package 3",
+        "tagline": "A taste of everything ",
+        "link": "https://www.patreon.com/collection/2519243",
+        "bookIds": [
+          "1790007922308",
+          "1790008443278",
+          "1792922310108",
+          "1785935151890",
+          "1790008243211"
+        ]
+      },
+      {
+        "id": "pk1795795685284",
+        "name": "Holiday package 4",
+        "tagline": "The perfect line up",
+        "link": "https://www.patreon.com/collection/2519260",
+        "bookIds": [
+          "1784510386444",
+          "1784510936190",
+          "1787444306034",
+          "1788446279999",
+          "1784510657287"
+        ]
+      }
+    ]
+  }
 }
